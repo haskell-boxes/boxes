@@ -12,6 +12,9 @@ data Content = Blank
              | Col [Box]
   deriving (Show)
 
+emptyBox :: Box
+emptyBox = Box 0 0 Blank
+
 char :: Char -> Box
 char c = Box 1 1 (Text [c])
 

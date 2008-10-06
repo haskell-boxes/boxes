@@ -1,0 +1,11 @@
+name:                boxes
+version:             0.0
+synopsis:            <Project description>
+description:         <Project description>
+category:            Text
+license:             BSD3
+license-file:        LICENSE
+author:              Brent Yorgey
+maintainer:          byorgey@gmail.com
+build-Depends:       base
+ghc-options:         

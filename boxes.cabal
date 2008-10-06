@@ -1,11 +1,12 @@
 name:                boxes
 version:             0.0
-synopsis:            <Project description>
-description:         <Project description>
+synopsis:            Flexible text layout tool
+description:         A flexible text layout tool, using a box model a la TeX.
 category:            Text
 license:             BSD3
 license-file:        LICENSE
 author:              Brent Yorgey
 maintainer:          byorgey@gmail.com
 build-Depends:       base
-ghc-options:         
+build-type:          Simple
+exposed-modules:     Text.PrettyPrint.Boxes

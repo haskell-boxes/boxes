@@ -16,6 +16,13 @@ instance IsString Box where
 data Alignment = AlignFirst | AlignCenter1 | AlignCenter2 | AlignLast
   deriving (Eq, Read, Show)
 
+top = AlignFirst
+bottom = AlignLast
+left = AlignFirst
+right = AlignLast
+center1 = AlignCenter1
+center2 = AlignCenter2
+
 data Content = Blank
              | Text String
              | Row [Box]
@@ -23,8 +30,11 @@ data Content = Blank
              | SubBox Alignment Alignment Box  -- ^ horizontal and vertical alignment.
   deriving (Show)
 
-emptyBox :: Box
-emptyBox = Box 0 0 Blank
+nilBox :: Box
+nilBox = emptyBox 0 0
+
+emptyBox :: Int -> Int -> Box
+emptyBox r c = Box r c Blank
 
 char :: Char -> Box
 char c = Box 1 1 (Text [c])
@@ -35,8 +45,14 @@ text t = Box 1 (length t) (Text t)
 (<>) :: Box -> Box -> Box
 l <> r = hcat [l,r]
 
+(<+>) :: Box -> Box -> Box
+l <+> r = hcat [l, emptyBox 0 1, r]
+
 (//) :: Box -> Box -> Box
-l // r = vcat [l,r]
+t // b = vcat [t,b]
+
+(/+/) :: Box -> Box -> Box
+t /+/ b = vcat [t, emptyBox 1 0, b]
 
 alignHoriz :: Alignment -> Int -> Box -> Box
 alignHoriz a c b = Box (rows b) c $ SubBox a AlignFirst b
@@ -45,7 +61,7 @@ alignVert :: Alignment -> Int -> Box -> Box
 alignVert a r b = Box r (cols b) $ SubBox AlignFirst a b
 
 align :: Alignment -> Alignment -> Int -> Int -> Box -> Box
-align ah av r c = Box r c . SubBox ah av 
+align ah av r c = Box r c . SubBox ah av
 
 hcat :: [Box] -> Box
 hcat = hcatA AlignFirst
@@ -74,7 +90,7 @@ takeP b n []              = replicate n b
 takeP b n (x:xs)          = x : takeP b (n-1) xs
 
 -- like takeP, but with alignment.
-takePA c b n = glue . (takeP b (numRev c n) *** takeP b (numFwd c n)) . split 
+takePA c b n = glue . (takeP b (numRev c n) *** takeP b (numFwd c n)) . split
   where split t = first reverse . splitAt (numRev c (length t)) $ t
         glue    = uncurry (++) . first reverse
         numFwd AlignFirst   n = n
@@ -91,18 +107,18 @@ blanks = flip replicate ' '
 
 renderBox :: Box -> [String]
 
-renderBox (Box r c Blank)            = resizeBox r c [""] 
+renderBox (Box r c Blank)            = resizeBox r c [""]
 renderBox (Box r c (Text t))         = resizeBox r c [t]
-renderBox (Box r c (Row bs))         = resizeBox r c 
-                                       . merge 
-                                       . map (renderBoxWithRows r) 
+renderBox (Box r c (Row bs))         = resizeBox r c
+                                       . merge
+                                       . map (renderBoxWithRows r)
                                        $ bs
                            where merge = foldr (zipWith (++)) (repeat [])
-renderBox (Box r c (Col bs))         = resizeBox r c 
-                                       . concatMap (renderBoxWithCols c) 
+renderBox (Box r c (Col bs))         = resizeBox r c
+                                       . concatMap (renderBoxWithCols c)
                                        $ bs
-renderBox (Box r c (SubBox ha va b)) = resizeBoxAligned r c ha va 
-                                       . renderBox 
+renderBox (Box r c (SubBox ha va b)) = resizeBoxAligned r c ha va
+                                       . renderBox
                                        $ b
 
 renderBoxWithRows :: Int -> Box -> [String]

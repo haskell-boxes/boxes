@@ -38,13 +38,28 @@ l <> r = hcat [l,r]
 (//) :: Box -> Box -> Box
 l // r = vcat [l,r]
 
+alignHoriz :: Alignment -> Int -> Box -> Box
+alignHoriz a c b = Box (rows b) c $ SubBox a AlignFirst b
+
+alignVert :: Alignment -> Int -> Box -> Box
+alignVert a r b = Box r (cols b) $ SubBox AlignFirst a b
+
+align :: Alignment -> Alignment -> Int -> Int -> Box -> Box
+align ah av r c = Box r c . SubBox ah av 
+
 hcat :: [Box] -> Box
-hcat bs = Box h w (Row bs)
+hcat = hcatA AlignFirst
+
+hcatA :: Alignment -> [Box] -> Box
+hcatA a bs = Box h w (Row $ map (alignVert a h) bs)
   where h = maximum . (0:) . map rows $ bs
         w = sum . map cols $ bs
 
 vcat :: [Box] -> Box
-vcat bs = Box h w (Col bs)
+vcat = vcatA AlignFirst
+
+vcatA :: Alignment -> [Box] -> Box
+vcatA a bs = Box h w (Col $ map (alignHoriz a w) bs)
   where h = sum . map rows $ bs
         w = maximum . (0:) . map cols $ bs
 

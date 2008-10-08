@@ -1,4 +1,8 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Text.PrettyPrint.Boxes where
+
+import Data.String
+import Control.Arrow ((***), first)
 
 data Box = Box { rows    :: Int
                , cols    :: Int
@@ -6,10 +10,17 @@ data Box = Box { rows    :: Int
                }
   deriving (Show)
 
+instance IsString Box where
+  fromString = text
+
+data Alignment = AlignFirst | AlignCenter1 | AlignCenter2 | AlignLast
+  deriving (Eq, Read, Show)
+
 data Content = Blank
              | Text String
              | Row [Box]
              | Col [Box]
+             | SubBox Alignment Alignment Box  -- ^ horizontal and vertical alignment.
   deriving (Show)
 
 emptyBox :: Box
@@ -28,30 +39,57 @@ l <> r = hcat [l,r]
 l // r = vcat [l,r]
 
 hcat :: [Box] -> Box
-hcat bs = Box h w (Row $ map (padH h) bs)
+hcat bs = Box h w (Row bs)
   where h = maximum . (0:) . map rows $ bs
         w = sum . map cols $ bs
 
-padH :: Int -> Box -> Box
-padH h b | rows b < h = b // Box (h - rows b) (cols b) Blank
-padH _ b = b
-
 vcat :: [Box] -> Box
-vcat bs = Box h w (Col $ map (padW w) bs)
+vcat bs = Box h w (Col bs)
   where h = sum . map rows $ bs
         w = maximum . (0:) . map cols $ bs
 
-padW :: Int -> Box -> Box
-padW w b | cols b < w = b <> Box (rows b) (w - cols b) Blank
-padW _ b = b
-
 render :: Box -> String
-render b = unlines $ map (flip extractLine b) [0..rows b - 1]
+render = unlines . renderBox
 
-extractLine :: Int -> Box -> String
-extractLine _ (Box _ c Blank)        = replicate c ' '
-extractLine _ (Box _ _ (Text t))     = t
-extractLine i (Box _ _ (Row bs))     = concatMap (extractLine i) bs
-extractLine i (Box _ _ (Col []))     = ""
-extractLine i (Box r c (Col (b:bs))) | i < rows b = extractLine i b
-                                       | otherwise  = extractLine (i - rows b) (Box (r - rows b) c (Col bs))
+-- XXX make QC properties for takeP
+
+takeP :: a -> Int -> [a] -> [a]
+takeP _ n _      | n <= 0 = []
+takeP b n []              = replicate n b
+takeP b n (x:xs)          = x : takeP b (n-1) xs
+
+-- like takeP, but with alignment.
+takePA c b n = glue . (takeP b (numRev c n) *** takeP b (numFwd c n)) . split 
+  where split t = first reverse . splitAt (numRev c (length t)) $ t
+        glue = uncurry (++) . first reverse
+        numFwd AlignFirst   n = n
+        numFwd AlignLast    _ = 0
+        numFwd AlignCenter1 n = n `div` 2
+        numFwd AlignCenter2 n = (n+1) `div` 2
+        numRev AlignFirst   _ = 0
+        numRev AlignLast    n = n
+        numRev AlignCenter1 n = (n+1) `div` 2
+        numRev AlignCenter2 n = n `div` 2
+
+blanks :: Int -> String
+blanks = flip replicate ' '
+
+renderBox :: Box -> [String]
+renderBox (Box r c Blank)    = resizeBox r c [""] 
+renderBox (Box r c (Text t)) = resizeBox r c [t]
+renderBox (Box r c (Row bs)) = resizeBox r c . merge . map (renderBoxWithRows r) $ bs
+  where merge = foldr (zipWith (++)) (repeat [])
+renderBox (Box r c (Col bs)) = resizeBox r c . concatMap (renderBoxWithCols c) $ bs
+renderBox (Box r c (SubBox ha va b)) = resizeBoxAligned r c ha va . renderBox $ b
+
+renderBoxWithRows :: Int -> Box -> [String]
+renderBoxWithRows r b = renderBox (b{rows = r})
+
+renderBoxWithCols :: Int -> Box -> [String]
+renderBoxWithCols c b = renderBox (b{cols = c})
+
+resizeBox :: Int -> Int -> [String] -> [String]
+resizeBox r c = takeP (blanks c) r . map (takeP ' ' c)
+
+resizeBoxAligned :: Int -> Int -> Alignment -> Alignment -> [String] -> [String]
+resizeBoxAligned r c ha va = takePA va (blanks c) r . map (takePA ha ' ' c)

@@ -61,7 +61,7 @@ takeP b n (x:xs)          = x : takeP b (n-1) xs
 -- like takeP, but with alignment.
 takePA c b n = glue . (takeP b (numRev c n) *** takeP b (numFwd c n)) . split 
   where split t = first reverse . splitAt (numRev c (length t)) $ t
-        glue = uncurry (++) . first reverse
+        glue    = uncurry (++) . first reverse
         numFwd AlignFirst   n = n
         numFwd AlignLast    _ = 0
         numFwd AlignCenter1 n = n `div` 2
@@ -75,12 +75,20 @@ blanks :: Int -> String
 blanks = flip replicate ' '
 
 renderBox :: Box -> [String]
-renderBox (Box r c Blank)    = resizeBox r c [""] 
-renderBox (Box r c (Text t)) = resizeBox r c [t]
-renderBox (Box r c (Row bs)) = resizeBox r c . merge . map (renderBoxWithRows r) $ bs
-  where merge = foldr (zipWith (++)) (repeat [])
-renderBox (Box r c (Col bs)) = resizeBox r c . concatMap (renderBoxWithCols c) $ bs
-renderBox (Box r c (SubBox ha va b)) = resizeBoxAligned r c ha va . renderBox $ b
+
+renderBox (Box r c Blank)            = resizeBox r c [""] 
+renderBox (Box r c (Text t))         = resizeBox r c [t]
+renderBox (Box r c (Row bs))         = resizeBox r c 
+                                       . merge 
+                                       . map (renderBoxWithRows r) 
+                                       $ bs
+                           where merge = foldr (zipWith (++)) (repeat [])
+renderBox (Box r c (Col bs))         = resizeBox r c 
+                                       . concatMap (renderBoxWithCols c) 
+                                       $ bs
+renderBox (Box r c (SubBox ha va b)) = resizeBoxAligned r c ha va 
+                                       . renderBox 
+                                       $ b
 
 renderBoxWithRows :: Int -> Box -> [String]
 renderBoxWithRows r b = renderBox (b{rows = r})

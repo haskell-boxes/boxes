@@ -114,9 +114,11 @@ renderBox (Box r c (Row bs))         = resizeBox r c
                                        . map (renderBoxWithRows r)
                                        $ bs
                            where merge = foldr (zipWith (++)) (repeat [])
+
 renderBox (Box r c (Col bs))         = resizeBox r c
                                        . concatMap (renderBoxWithCols c)
                                        $ bs
+
 renderBox (Box r c (SubBox ha va b)) = resizeBoxAligned r c ha va
                                        . renderBox
                                        $ b

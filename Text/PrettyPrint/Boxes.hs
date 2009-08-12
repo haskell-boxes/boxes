@@ -1,112 +1,234 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Text.PrettyPrint.Boxes where
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Text.PrettyPrint.Boxes
+-- Copyright   :  (c) Brent Yorgey 2009
+-- License     :  BSD-style (see LICENSE)
+-- Maintainer  :  byorgey@cis.upenn.edu
+-- Stability   :  experimental
+-- Portability :  portable
+--
+-- A pretty-printing library for laying out text in two dimensions,
+-- using a simple box model.
+--
+-----------------------------------------------------------------------------
+module Text.PrettyPrint.Boxes
+    ( -- * Constructing boxes
+
+      nullBox
+    , emptyBox
+    , char
+    , text
+
+      -- * Layout of boxes
+
+    , (<>)
+    , (<+>)
+    , hcat, hcatA
+
+    , (//)
+    , (/+/)
+    , vcat, vcatA
+
+    , moveLeft
+    , moveRight
+    , moveUp
+    , moveDown
+
+    , alignHoriz
+    , alignVert
+    , align
+
+    -- * Rendering boxes
+
+    , render
+    , printBox
+
+    ) where
 
 import Data.String
 import Control.Arrow ((***), first)
 
+-- | The basic data type.  A box has a specified size and some sort of
+--   contents.
 data Box = Box { rows    :: Int
                , cols    :: Int
                , content :: Content
                }
   deriving (Show)
 
+-- | Convenient ability to use bare string literals as boxes.
 instance IsString Box where
   fromString = text
 
+-- | Data type for specifying the alignment of boxes.
 data Alignment = AlignFirst    -- ^ Align at the top/left.
                | AlignCenter1  -- ^ Centered, biased to the top/left.
                | AlignCenter2  -- ^ Centered, biased to the bottom/right.
                | AlignLast     -- ^ Align at the bottom/right.
   deriving (Eq, Read, Show)
 
+-- | Align boxes along their tops.
+top :: Alignment
 top        = AlignFirst
+
+-- | Align boxes along their bottoms.
+bottom :: Alignment
 bottom     = AlignLast
+
+-- | Align boxes to the left.
+left :: Alignment
 left       = AlignFirst
+
+-- | Align boxes to the right.
+right :: Alignment
 right      = AlignLast
+
+-- | Align boxes centered, but biased to the left/top in case of
+--   unequal parities.
+center1 :: Alignment
 center1    = AlignCenter1
+
+-- | Align boxes centered, but biased to the right/bottom in case of
+--   unequal parities.
+center2 :: Alignment
 center2    = AlignCenter2
 
-data Content = Blank
-             | Text String
-             | Row [Box]
-             | Col [Box]
-             | SubBox Alignment Alignment Box  -- ^ horizontal and vertical alignment.
+-- | Contents of a box.
+data Content = Blank             -- ^ No content.
+             | Text String       -- ^ A raw string.
+             | Row [Box]         -- ^ A row of sub-boxes.
+             | Col [Box]         -- ^ A column of sub-boxes.
+             | SubBox Alignment Alignment Box  -- ^ A sub-box with a specified alignment.
   deriving (Show)
 
-nilBox :: Box
-nilBox = emptyBox 0 0
+-- | The null box, which has no content and no size.  It is quite
+--   useless.
+nullBox :: Box
+nullBox = emptyBox 0 0
 
+-- | An empty box with a given size.  Useful for affecting more
+--   fine-grained positioning of other boxes, by inserting empty boxes
+--   of the desired size in between them.
 emptyBox :: Int -> Int -> Box
 emptyBox r c = Box r c Blank
 
+-- | A @1x1@ box containing a single character.
 char :: Char -> Box
 char c = Box 1 1 (Text [c])
 
+-- | A (@1 x len@) box containing a string of length @len@.
 text :: String -> Box
 text t = Box 1 (length t) (Text t)
 
+-- | Paste two boxes together horizontally, using a default (top)
+--   alignment.
 (<>) :: Box -> Box -> Box
 l <> r = hcat [l,r]
 
+-- | Paste two boxes together horizontally with a single intervening
+--   column of space, using a default (top) alignment.
 (<+>) :: Box -> Box -> Box
 l <+> r = hcat [l, emptyBox 0 1, r]
 
+-- | Paste two boxes together vertically, using a default (left)
+--   alignment.
 (//) :: Box -> Box -> Box
 t // b = vcat [t,b]
 
+-- | Paste two boxes together vertically with a single intervening row
+--   of space, using a default (left) alignment.
 (/+/) :: Box -> Box -> Box
 t /+/ b = vcat [t, emptyBox 1 0, b]
 
+-- | @alignHoriz algn n bx@ creates a box of width @n@, with the
+--   contents and height of @bx@, horizontally aligned according to
+--   @algn@.
 alignHoriz :: Alignment -> Int -> Box -> Box
 alignHoriz a c b = Box (rows b) c $ SubBox a AlignFirst b
 
+-- | @alignVert algn n bx@ creates a box of height @n@, with the
+--   contents and width of @bx@, vertically aligned according to
+--   @algn@.
 alignVert :: Alignment -> Int -> Box -> Box
 alignVert a r b = Box r (cols b) $ SubBox AlignFirst a b
 
+-- | @align ah av r c bx@ creates an @r@ x @c@ box with the contents
+--   of @bx@, aligned horizontally according to @ah@ and vertically
+--   according to @av@.
 align :: Alignment -> Alignment -> Int -> Int -> Box -> Box
 align ah av r c = Box r c . SubBox ah av
 
+-- | Move a box \"up\" by putting it in a larger box with extra rows,
+--   aligned to the top.  See the disclaimer for 'moveLeft'.
 moveUp :: Int -> Box -> Box
 moveUp n b = alignVert top (rows b + n) b
 
+-- | Move a box down by putting it in a larger box with extra rows,
+--   aligned to the bottom.  See the disclaimer for 'moveLeft'.
 moveDown :: Int -> Box -> Box
 moveDown n b = alignVert bottom (rows b + n) b
 
+-- | Move a box left by putting it in a larger box with extra columns,
+--   aligned left.  Note that the name of this function is
+--   something of a white lie, as this will only result in the box
+--   being moved left by the specified amount if it is already in a
+--   larger right-aligned context.
 moveLeft :: Int -> Box -> Box
 moveLeft n b = alignHoriz left (cols b + n) b
 
+-- | Move a box right by putting it in a larger box with extra
+--   columns, aligned right.  See the disclaimer for 'moveLeft'.
 moveRight :: Int -> Box -> Box
 moveRight n b = alignHoriz right (cols b + n) b
 
+-- | Glue a list of boxes together horizontally, with a default (top)
+--   alignment.
 hcat :: [Box] -> Box
 hcat = hcatA AlignFirst
 
+-- | Glue a list of boxes together horizontally, with the given alignment.
 hcatA :: Alignment -> [Box] -> Box
 hcatA a bs = Box h w (Row $ map (alignVert a h) bs)
   where h = maximum . (0:) . map rows $ bs
         w = sum . map cols $ bs
 
+-- | Glue a list of boxes together vertically, with a default (left)
+--   alignment.
 vcat :: [Box] -> Box
 vcat = vcatA AlignFirst
 
+-- | Glue a list of boxes together vertically, with the given alignment.
 vcatA :: Alignment -> [Box] -> Box
 vcatA a bs = Box h w (Col $ map (alignHoriz a w) bs)
   where h = sum . map rows $ bs
         w = maximum . (0:) . map cols $ bs
 
------- implementation ----------------
+--------------------------------------------------------------------------------
+-- Implementation --------------------------------------------------------------
+--------------------------------------------------------------------------------
 
+-- | Render a 'Box' as a String, suitable for writing to the screen or
+--   a file.
 render :: Box -> String
 render = unlines . renderBox
 
 -- XXX make QC properties for takeP
 
+-- | \"Padded take\": @takeP a n xs@ is the same as @take n xs@, if @n
+--   <= length xs@; otherwise it is @xs@ followed by enough copies of
+--   @a@ to make the length equal to @n@.
 takeP :: a -> Int -> [a] -> [a]
 takeP _ n _      | n <= 0 = []
 takeP b n []              = replicate n b
 takeP b n (x:xs)          = x : takeP b (n-1) xs
 
--- like takeP, but with alignment.
+-- | @takePA @ is like 'takeP', but with alignment.  That is, we
+--   imagine a copy of @xs@ extended infinitely on both sides with
+--   copies of @a@, and a window of size @n@ placed so that @xs@ has
+--   the specified alignment within the window; @takePA algn a n xs@
+--   returns the contents of this window.
+takePA :: Alignment -> a -> Int -> [a] -> [a]
 takePA c b n = glue . (takeP b (numRev c n) *** takeP b (numFwd c n)) . split
   where split t = first reverse . splitAt (numRev c (length t)) $ t
         glue    = uncurry (++) . first reverse
@@ -119,9 +241,11 @@ takePA c b n = glue . (takeP b (numRev c n) *** takeP b (numFwd c n)) . split
         numRev AlignCenter1  n = (n+1) `div` 2
         numRev AlignCenter2  n = n `div` 2
 
+-- | Generate a string of spaces.
 blanks :: Int -> String
 blanks = flip replicate ' '
 
+-- | Render a box as a list of lines.
 renderBox :: Box -> [String]
 
 renderBox (Box r c Blank)            = resizeBox r c [""]
@@ -140,17 +264,22 @@ renderBox (Box r c (SubBox ha va b)) = resizeBoxAligned r c ha va
                                        . renderBox
                                        $ b
 
+-- | Render a box as a list of lines, using a given number of rows.
 renderBoxWithRows :: Int -> Box -> [String]
 renderBoxWithRows r b = renderBox (b{rows = r})
 
+-- | Render a box as a list of lines, using a given number of columns.
 renderBoxWithCols :: Int -> Box -> [String]
 renderBoxWithCols c b = renderBox (b{cols = c})
 
+-- | Resize a rendered list of lines.
 resizeBox :: Int -> Int -> [String] -> [String]
 resizeBox r c = takeP (blanks c) r . map (takeP ' ' c)
 
+-- | Resize a rendered list of lines, using given alignments.
 resizeBoxAligned :: Int -> Int -> Alignment -> Alignment -> [String] -> [String]
 resizeBoxAligned r c ha va = takePA va (blanks c) r . map (takePA ha ' ' c)
 
+-- | A convenience function for rendering a box to stdout.
 printBox :: Box -> IO ()
 printBox = putStr . render

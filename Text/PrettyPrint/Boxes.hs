@@ -13,15 +13,18 @@ data Box = Box { rows    :: Int
 instance IsString Box where
   fromString = text
 
-data Alignment = AlignFirst | AlignCenter1 | AlignCenter2 | AlignLast
+data Alignment = AlignFirst    -- ^ Align at the top/left.
+               | AlignCenter1  -- ^ Centered, biased to the top/left.
+               | AlignCenter2  -- ^ Centered, biased to the bottom/right.
+               | AlignLast     -- ^ Align at the bottom/right.
   deriving (Eq, Read, Show)
 
-top = AlignFirst
-bottom = AlignLast
-left = AlignFirst
-right = AlignLast
-center1 = AlignCenter1
-center2 = AlignCenter2
+top        = AlignFirst
+bottom     = AlignLast
+left       = AlignFirst
+right      = AlignLast
+center1    = AlignCenter1
+center2    = AlignCenter2
 
 data Content = Blank
              | Text String
@@ -63,6 +66,18 @@ alignVert a r b = Box r (cols b) $ SubBox AlignFirst a b
 align :: Alignment -> Alignment -> Int -> Int -> Box -> Box
 align ah av r c = Box r c . SubBox ah av
 
+moveUp :: Int -> Box -> Box
+moveUp n b = alignVert top (rows b + n) b
+
+moveDown :: Int -> Box -> Box
+moveDown n b = alignVert bottom (rows b + n) b
+
+moveLeft :: Int -> Box -> Box
+moveLeft n b = alignHoriz left (cols b + n) b
+
+moveRight :: Int -> Box -> Box
+moveRight n b = alignHoriz right (cols b + n) b
+
 hcat :: [Box] -> Box
 hcat = hcatA AlignFirst
 
@@ -79,6 +94,8 @@ vcatA a bs = Box h w (Col $ map (alignHoriz a w) bs)
   where h = sum . map rows $ bs
         w = maximum . (0:) . map cols $ bs
 
+------ implementation ----------------
+
 render :: Box -> String
 render = unlines . renderBox
 
@@ -93,14 +110,14 @@ takeP b n (x:xs)          = x : takeP b (n-1) xs
 takePA c b n = glue . (takeP b (numRev c n) *** takeP b (numFwd c n)) . split
   where split t = first reverse . splitAt (numRev c (length t)) $ t
         glue    = uncurry (++) . first reverse
-        numFwd AlignFirst   n = n
-        numFwd AlignLast    _ = 0
-        numFwd AlignCenter1 n = n `div` 2
-        numFwd AlignCenter2 n = (n+1) `div` 2
-        numRev AlignFirst   _ = 0
-        numRev AlignLast    n = n
-        numRev AlignCenter1 n = (n+1) `div` 2
-        numRev AlignCenter2 n = n `div` 2
+        numFwd AlignFirst    n = n
+        numFwd AlignLast     _ = 0
+        numFwd AlignCenter1  n = n `div` 2
+        numFwd AlignCenter2  n = (n+1) `div` 2
+        numRev AlignFirst    _ = 0
+        numRev AlignLast     n = n
+        numRev AlignCenter1  n = (n+1) `div` 2
+        numRev AlignCenter2  n = n `div` 2
 
 blanks :: Int -> String
 blanks = flip replicate ' '
@@ -134,3 +151,6 @@ resizeBox r c = takeP (blanks c) r . map (takeP ' ' c)
 
 resizeBoxAligned :: Int -> Int -> Alignment -> Alignment -> [String] -> [String]
 resizeBoxAligned r c ha va = takePA va (blanks c) r . map (takePA ha ' ' c)
+
+printBox :: Box -> IO ()
+printBox = putStr . render

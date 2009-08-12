@@ -1,12 +1,13 @@
 name:                boxes
-version:             0.0
-synopsis:            Flexible text layout tool
-description:         A flexible text layout tool, using a box model a la TeX.
+version:             0.1
+synopsis:            2D text pretty-printing library
+description:         A pretty-printing library for laying out text in
+                     two dimensions, using a simple box model.
 category:            Text
 license:             BSD3
 license-file:        LICENSE
 author:              Brent Yorgey
-maintainer:          byorgey@gmail.com
+maintainer:          byorgey@cis.upenn.edu
 build-Depends:       base
 build-type:          Simple
 exposed-modules:     Text.PrettyPrint.Boxes

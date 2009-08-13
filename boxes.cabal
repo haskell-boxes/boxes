@@ -8,6 +8,6 @@ license:             BSD3
 license-file:        LICENSE
 author:              Brent Yorgey
 maintainer:          byorgey@cis.upenn.edu
-build-Depends:       base
+build-Depends:       base >= 3 && < 5, split >=0.1 && <0.2
 build-type:          Simple
 exposed-modules:     Text.PrettyPrint.Boxes

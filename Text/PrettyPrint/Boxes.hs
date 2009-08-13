@@ -19,16 +19,28 @@ module Text.PrettyPrint.Boxes
     , emptyBox
     , char
     , text
+    , para
+    , columns
 
       -- * Layout of boxes
 
     , (<>)
     , (<+>)
-    , hcat, hcatA
+    , hcat
+    , hsep
 
     , (//)
     , (/+/)
-    , vcat, vcatA
+    , vcat
+    , vsep
+
+    , punctuateH, punctuateV
+
+    -- * Alignment
+
+    , left, right
+    , top, bottom
+    , center1, center2
 
     , moveLeft
     , moveRight
@@ -48,6 +60,9 @@ module Text.PrettyPrint.Boxes
 
 import Data.String
 import Control.Arrow ((***), first)
+import Data.List (foldl', intersperse)
+
+import Data.List.Split
 
 -- | The basic data type.  A box has a specified size and some sort of
 --   contents.
@@ -95,11 +110,12 @@ center2 :: Alignment
 center2    = AlignCenter2
 
 -- | Contents of a box.
-data Content = Blank             -- ^ No content.
-             | Text String       -- ^ A raw string.
-             | Row [Box]         -- ^ A row of sub-boxes.
-             | Col [Box]         -- ^ A column of sub-boxes.
-             | SubBox Alignment Alignment Box  -- ^ A sub-box with a specified alignment.
+data Content = Blank        -- ^ No content.
+             | Text String  -- ^ A raw string.
+             | Row [Box]    -- ^ A row of sub-boxes.
+             | Col [Box]    -- ^ A column of sub-boxes.
+             | SubBox Alignment Alignment Box
+                            -- ^ A sub-box with a specified alignment.
   deriving (Show)
 
 -- | The null box, which has no content and no size.  It is quite
@@ -107,9 +123,10 @@ data Content = Blank             -- ^ No content.
 nullBox :: Box
 nullBox = emptyBox 0 0
 
--- | An empty box with a given size.  Useful for affecting more
---   fine-grained positioning of other boxes, by inserting empty boxes
---   of the desired size in between them.
+-- | @emptyBox r c@ is an empty box with @r@ rows and @c@ columns.
+--   Useful for affecting more fine-grained positioning of other
+--   boxes, by inserting empty boxes of the desired size in between
+--   them.
 emptyBox :: Int -> Int -> Box
 emptyBox r c = Box r c Blank
 
@@ -124,22 +141,124 @@ text t = Box 1 (length t) (Text t)
 -- | Paste two boxes together horizontally, using a default (top)
 --   alignment.
 (<>) :: Box -> Box -> Box
-l <> r = hcat [l,r]
+l <> r = hcat top [l,r]
 
 -- | Paste two boxes together horizontally with a single intervening
 --   column of space, using a default (top) alignment.
 (<+>) :: Box -> Box -> Box
-l <+> r = hcat [l, emptyBox 0 1, r]
+l <+> r = hcat top [l, emptyBox 0 1, r]
 
 -- | Paste two boxes together vertically, using a default (left)
 --   alignment.
 (//) :: Box -> Box -> Box
-t // b = vcat [t,b]
+t // b = vcat left [t,b]
 
 -- | Paste two boxes together vertically with a single intervening row
 --   of space, using a default (left) alignment.
 (/+/) :: Box -> Box -> Box
-t /+/ b = vcat [t, emptyBox 1 0, b]
+t /+/ b = vcat left [t, emptyBox 1 0, b]
+
+-- | Glue a list of boxes together horizontally, with the given alignment.
+hcat :: Alignment -> [Box] -> Box
+hcat a bs = Box h w (Row $ map (alignVert a h) bs)
+  where h = maximum . (0:) . map rows $ bs
+        w = sum . map cols $ bs
+
+-- | @hsep sep a bs@ lays out @bs@ horizontally with alignment @a@,
+--   with @sep@ amount of space in between each.
+hsep :: Int -> Alignment -> [Box] -> Box
+hsep sep a bs = punctuateH a (emptyBox 0 sep) bs
+
+-- | Glue a list of boxes together vertically, with the given alignment.
+vcat :: Alignment -> [Box] -> Box
+vcat a bs = Box h w (Col $ map (alignHoriz a w) bs)
+  where h = sum . map rows $ bs
+        w = maximum . (0:) . map cols $ bs
+
+-- | @vsep sep a bs@ lays out @bs@ vertically with alignment @a@,
+--   with @sep@ amount of space in between each.
+vsep :: Int -> Alignment -> [Box] -> Box
+vsep sep a bs = punctuateV a (emptyBox sep 0) bs
+
+-- | @punctuateH a p bs@ horizontally lays out the boxes @bs@ with a
+--   copy of @p@ interspersed between each.
+punctuateH :: Alignment -> Box -> [Box] -> Box
+punctuateH a p bs = hcat a (intersperse p bs)
+
+-- | A vertical version of 'punctuateH'.
+punctuateV :: Alignment -> Box -> [Box] -> Box
+punctuateV a p bs = vcat a (intersperse p bs)
+
+--------------------------------------------------------------------------------
+--  Paragraph flowing  ---------------------------------------------------------
+--------------------------------------------------------------------------------
+
+-- | @para algn w t@ is a box of width @w@, containing text @t@,
+--   aligned according to @algn@, flowed to fit within the given
+--   width.
+para :: Alignment -> Int -> String -> Box
+para a n t = (\ss -> mkParaBox a (length ss) ss) $ flow n t
+
+-- | @columns w h t@ is a list of boxes, each of width @w@ and height
+--   at most @h@, containing text @t@ flowed into as many columns as
+--   necessary.
+columns :: Alignment -> Int -> Int -> String -> [Box]
+columns a w h t = map (mkParaBox a h) . chunk h $ flow w t
+
+-- | @mkParaBox a n s@ makes a box of height @n@ with the text @s@
+--   aligned according to @a@.
+mkParaBox :: Alignment -> Int -> [String] -> Box
+mkParaBox a n = alignVert top n . vcat a . map text
+
+-- | Flow the given text into the given width.
+flow :: Int -> String -> [String]
+flow n t = map (take n)
+         . getLines
+         $ foldl' addWordP (emptyPara n) (map mkWord . words $ t)
+
+data Para = Para { paraWidth   :: Int
+                 , paraContent :: ParaContent
+                 }
+data ParaContent = Block { fullLines :: [Line]
+                         , lastLine  :: Line
+                         }
+
+emptyPara :: Int -> Para
+emptyPara pw = Para pw (Block [] (Line 0 []))
+
+getLines :: Para -> [String]
+getLines (Para _ (Block ls l))
+  | lLen l == 0 = process ls
+  | otherwise   = process (l:ls)
+  where process = map (unwords . reverse . map getWord . getWords) . reverse
+
+data Line = Line { lLen :: Int, getWords :: [Word] }
+
+mkLine :: [Word] -> Line
+mkLine ws = Line (sum (map wLen ws) + length ws - 1) ws
+
+startLine :: Word -> Line
+startLine = mkLine . (:[])
+
+data Word = Word { wLen :: Int, getWord  :: String }
+
+mkWord :: String -> Word
+mkWord w = Word (length w) w
+
+addWordP :: Para -> Word -> Para
+addWordP (Para pw (Block fl l)) w
+  | wordFits pw w l = Para pw (Block fl (addWordL w l))
+  | otherwise       = Para pw (Block (l:fl) (startLine w))
+
+addWordL :: Word -> Line -> Line
+addWordL w (Line len ws) = Line (len + wLen w + 1) (w:ws)
+
+wordFits :: Int -> Word -> Line -> Bool
+wordFits pw w l = lLen l == 0 || lLen l + wLen w + 1 <= pw
+
+--------------------------------------------------------------------------------
+--  Alignment  -----------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 -- | @alignHoriz algn n bx@ creates a box of width @n@, with the
 --   contents and height of @bx@, horizontally aligned according to
@@ -182,30 +301,8 @@ moveLeft n b = alignHoriz left (cols b + n) b
 moveRight :: Int -> Box -> Box
 moveRight n b = alignHoriz right (cols b + n) b
 
--- | Glue a list of boxes together horizontally, with a default (top)
---   alignment.
-hcat :: [Box] -> Box
-hcat = hcatA AlignFirst
-
--- | Glue a list of boxes together horizontally, with the given alignment.
-hcatA :: Alignment -> [Box] -> Box
-hcatA a bs = Box h w (Row $ map (alignVert a h) bs)
-  where h = maximum . (0:) . map rows $ bs
-        w = sum . map cols $ bs
-
--- | Glue a list of boxes together vertically, with a default (left)
---   alignment.
-vcat :: [Box] -> Box
-vcat = vcatA AlignFirst
-
--- | Glue a list of boxes together vertically, with the given alignment.
-vcatA :: Alignment -> [Box] -> Box
-vcatA a bs = Box h w (Col $ map (alignHoriz a w) bs)
-  where h = sum . map rows $ bs
-        w = maximum . (0:) . map cols $ bs
-
 --------------------------------------------------------------------------------
--- Implementation --------------------------------------------------------------
+--  Implementation  ------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 -- | Render a 'Box' as a String, suitable for writing to the screen or

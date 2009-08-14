@@ -124,7 +124,7 @@ nullBox :: Box
 nullBox = emptyBox 0 0
 
 -- | @emptyBox r c@ is an empty box with @r@ rows and @c@ columns.
---   Useful for affecting more fine-grained positioning of other
+--   Useful for effecting more fine-grained positioning of other
 --   boxes, by inserting empty boxes of the desired size in between
 --   them.
 emptyBox :: Int -> Int -> Box

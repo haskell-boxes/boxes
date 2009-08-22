@@ -6,6 +6,7 @@ description:         A pretty-printing library for laying out text in
 category:            Text
 license:             BSD3
 license-file:        LICENSE
+extra-source-files:  CHANGES
 author:              Brent Yorgey
 maintainer:          byorgey@cis.upenn.edu
 homepage:            http://code.haskell.org/~byorgey/code/boxes

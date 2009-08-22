@@ -15,7 +15,9 @@
 module Text.PrettyPrint.Boxes
     ( -- * Constructing boxes
 
-      nullBox
+      Box
+
+    , nullBox
     , emptyBox
     , char
     , text
@@ -37,6 +39,8 @@ module Text.PrettyPrint.Boxes
     , punctuateH, punctuateV
 
     -- * Alignment
+
+    , Alignment
 
     , left, right
     , top, bottom

@@ -9,7 +9,13 @@ license-file:        LICENSE
 extra-source-files:  CHANGES
 author:              Brent Yorgey
 maintainer:          Eelis van der Weegen <boxes@contacts.eelis.net>
-homepage:            http://code.haskell.org/~byorgey/code/boxes
-build-Depends:       base >= 3 && < 5, split >=0.1 && <0.2
 build-type:          Simple
-exposed-modules:     Text.PrettyPrint.Boxes
+cabal-version:       >= 1.6
+
+library
+  build-depends:     base >= 3 && < 5, split >=0.1 && <0.2
+  exposed-modules:   Text.PrettyPrint.Boxes
+
+source-repository head
+  type: git
+  location: git://github.com/Eelis/boxes.git

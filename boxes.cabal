@@ -8,7 +8,7 @@ license:             BSD3
 license-file:        LICENSE
 extra-source-files:  CHANGES
 author:              Brent Yorgey
-maintainer:          byorgey@cis.upenn.edu
+maintainer:          Eelis van der Weegen <boxes@contacts.eelis.net>
 homepage:            http://code.haskell.org/~byorgey/code/boxes
 build-Depends:       base >= 3 && < 5, split >=0.1 && <0.2
 build-type:          Simple

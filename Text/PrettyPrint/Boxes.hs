@@ -55,6 +55,11 @@ module Text.PrettyPrint.Boxes
     , alignVert
     , align
 
+    -- * Inspecting boxes
+
+    , rows
+    , cols
+
     -- * Rendering boxes
 
     , render

@@ -1,5 +1,5 @@
 name:                boxes
-version:             0.1.1
+version:             0.1.2
 synopsis:            2D text pretty-printing library
 description:         A pretty-printing library for laying out text in
                      two dimensions, using a simple box model.

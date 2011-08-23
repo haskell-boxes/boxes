@@ -1,2 +1,5 @@
+0.1.2: August 23, 2011
+  * Export rows/cols.
+
 0.1.1: August 22, 2009
   * Export Box and Alignment types

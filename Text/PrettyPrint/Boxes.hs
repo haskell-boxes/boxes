@@ -212,7 +212,7 @@ para a n t = (\ss -> mkParaBox a (length ss) ss) $ flow n t
 --   at most @h@, containing text @t@ flowed into as many columns as
 --   necessary.
 columns :: Alignment -> Int -> Int -> String -> [Box]
-columns a w h t = map (mkParaBox a h) . chunk h $ flow w t
+columns a w h t = map (mkParaBox a h) . chunksOf h $ flow w t
 
 -- | @mkParaBox a n s@ makes a box of height @n@ with the text @s@
 --   aligned according to @a@.

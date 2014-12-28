@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE CPP #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Text.PrettyPrint.Boxes
@@ -66,6 +67,10 @@ module Text.PrettyPrint.Boxes
     , printBox
 
     ) where
+
+#if __GLASGOW_HASKELL__ > 708
+import Prelude hiding (Word)
+#endif
 
 import Data.String
 import Control.Arrow ((***), first)

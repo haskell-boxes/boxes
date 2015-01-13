@@ -1,4 +1,25 @@
+{-# LANGUAGE CPP #-}
+#ifndef MIN_VERSION_base
+-- These are not precise, but allow the module to be built without cabal.
+#if __GLASGOW_HASKELL__ >= 709
+#define MIN_VERSION_base(major1,major2,minor) (((major1) <= 4) && ((major2) <= 8))
+#elif __GLASGOW_HASKELL__ >= 707
+#define MIN_VERSION_base(major1,major2,minor) (((major1) <= 4) && ((major2) <= 7))
+#elif __GLASGOW_HASKELL__ >= 706
+#define MIN_VERSION_base(major1,major2,minor) (((major1) <= 4) && ((major2) <= 6))
+#else
+#define MIN_VERSION_base(major1,major2,minor) 0
+#endif
+#endif
+
+#ifdef __GLASGOW_HASKELL__
+#define OVERLOADED_STRINGS 1
+#endif
+
+#ifdef OVERLOADED_STRINGS
 {-# LANGUAGE OverloadedStrings #-}
+#endif
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Text.PrettyPrint.Boxes
@@ -67,11 +88,14 @@ module Text.PrettyPrint.Boxes
 
     ) where
 
-import Data.String
+import Data.String (words, unwords)
+#ifdef OVERLOADED_STRINGS
+import Data.String (IsString(..))
+#endif
 import Control.Arrow ((***), first)
 import Data.List (foldl', intersperse)
 
-import Data.List.Split
+import Data.List.Split (chunksOf)
 
 -- | The basic data type.  A box has a specified size and some sort of
 --   contents.
@@ -81,9 +105,11 @@ data Box = Box { rows    :: Int
                }
   deriving (Show)
 
+#ifdef OVERLOADED_STRINGS
 -- | Convenient ability to use bare string literals as boxes.
 instance IsString Box where
   fromString = text
+#endif
 
 -- | Data type for specifying the alignment of boxes.
 data Alignment = AlignFirst    -- ^ Align at the top/left.

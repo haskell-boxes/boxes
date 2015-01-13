@@ -1,0 +1,6 @@
+*.[oa]
+*.hi
+*.s
+*.prof
+*.so
+/dist

@@ -88,10 +88,15 @@ module Text.PrettyPrint.Boxes
 
     ) where
 
+#if MIN_VERSION_base(4,8,0)
+import Prelude hiding (Word)
+#endif
+
 import Data.String (words, unwords)
 #ifdef OVERLOADED_STRINGS
 import Data.String (IsString(..))
 #endif
+
 import Control.Arrow ((***), first)
 import Data.List (foldl', intersperse)
 

@@ -3,4 +3,6 @@
 *.s
 *.prof
 *.so
+*.dyn_hi
+*.dyn_o
 /dist

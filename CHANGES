@@ -1,3 +1,12 @@
+0.1.4: January 14, 2014
+  * Require Cabal >= 1.9.2
+  * Require CPP
+  * Only require OverloadedStrings for GHC
+  * Fix imports to work with 7.10.1
+  * Fix other imports to work with versions as far back as 7.0.1,
+    but only because it was easy this time
+  * Add testing framework skeletons for Cabal and Travis-CI.
+
 0.1.2: August 23, 2011
   * Export rows/cols.
 

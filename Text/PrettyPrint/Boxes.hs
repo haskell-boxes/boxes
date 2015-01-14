@@ -25,7 +25,7 @@
 -- Module      :  Text.PrettyPrint.Boxes
 -- Copyright   :  (c) Brent Yorgey 2009
 -- License     :  BSD-style (see LICENSE)
--- Maintainer  :  byorgey@cis.upenn.edu
+-- Maintainer  :  David.Feuer@gmail.com
 -- Stability   :  experimental
 -- Portability :  portable
 --

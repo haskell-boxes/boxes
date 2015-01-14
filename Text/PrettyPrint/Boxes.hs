@@ -35,9 +35,11 @@
 -----------------------------------------------------------------------------
 module Text.PrettyPrint.Boxes
     ( -- * Constructing boxes
-
+#ifdef TESTING
+      Box(Box, content)
+#else
       Box
-
+#endif
     , nullBox
     , emptyBox
     , char
@@ -61,8 +63,15 @@ module Text.PrettyPrint.Boxes
 
     -- * Alignment
 
+#ifdef TESTING
+    , Alignment(..)
+#else
     , Alignment
+#endif
 
+#ifdef TESTING
+    , Content(..)
+#endif
     , left, right
     , top, bottom
     , center1, center2
@@ -92,7 +101,12 @@ module Text.PrettyPrint.Boxes
 import Prelude hiding (Word)
 #endif
 
+#if MIN_VERSION_base(4,4,0)
 import Data.String (words, unwords)
+#else
+import Data.List (words, unwords)
+#endif
+
 #ifdef OVERLOADED_STRINGS
 import Data.String (IsString(..))
 #endif

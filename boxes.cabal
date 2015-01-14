@@ -18,6 +18,12 @@ library
   exposed-modules:   Text.PrettyPrint.Boxes
   extensions:        CPP
 
+Test-Suite test-boxes
+    type:            exitcode-stdio-1.0
+    main-is:         Text/PrettyPrint/Tests.hs
+    build-depends:   base >= 3 && < 5, split >=0.2 && <0.3, QuickCheck
+    cpp-options:     -DTESTING
+
 source-repository head
   type: git
   location: git://github.com/treeowl/boxes.git

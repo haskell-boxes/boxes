@@ -8,14 +8,16 @@ license:             BSD3
 license-file:        LICENSE
 extra-source-files:  CHANGES
 author:              Brent Yorgey
-maintainer:          Eelis van der Weegen <boxes@contacts.eelis.net>
+maintainer:          David Feuer <David.Feuer@gmail.com>
 build-type:          Simple
-cabal-version:       >= 1.6
+cabal-version:       >= 1.9.2
+-- Minimum Cabal version supporting test suites
 
 library
   build-depends:     base >= 3 && < 5, split >=0.2 && <0.3
   exposed-modules:   Text.PrettyPrint.Boxes
+  extensions:        CPP
 
 source-repository head
   type: git
-  location: git://github.com/Eelis/boxes.git
+  location: git://github.com/treeowl/boxes.git

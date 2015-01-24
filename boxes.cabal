@@ -6,7 +6,8 @@ description:         A pretty-printing library for laying out text in
 category:            Text
 license:             BSD3
 license-file:        LICENSE
-extra-source-files:  CHANGES, README.md
+extra-source-files:  CHANGES, README.md, include/boxes.h
+
 author:              Brent Yorgey
 maintainer:          David Feuer <David.Feuer@gmail.com>
 build-type:          Simple
@@ -17,16 +18,14 @@ library
   build-depends:     base >= 3 && < 5, split >=0.2 && <0.3
   exposed-modules:   Text.PrettyPrint.Boxes
   extensions:        CPP
-  if impl(ghc)
-    extensions: OverloadedStrings
+  include-dirs:      include
 
 Test-Suite test-boxes
   type:              exitcode-stdio-1.0
   main-is:           Text/PrettyPrint/Tests.hs
   build-depends:     base >= 3 && < 5, split >=0.2 && <0.3, QuickCheck
   extensions:        CPP
-  if impl(ghc)
-     extensions: OverloadedStrings
+  include-dirs:      include
   cpp-options:       -DTESTING
 -- Export some internals so the tests can get at them
 

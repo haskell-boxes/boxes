@@ -1,24 +1,5 @@
 {-# LANGUAGE CPP #-}
-#ifndef MIN_VERSION_base
--- These are not precise, but allow the module to be built without cabal.
-#if __GLASGOW_HASKELL__ >= 709
-#define MIN_VERSION_base(major1,major2,minor) (((major1) <= 4) && ((major2) <= 8))
-#elif __GLASGOW_HASKELL__ >= 707
-#define MIN_VERSION_base(major1,major2,minor) (((major1) <= 4) && ((major2) <= 7))
-#elif __GLASGOW_HASKELL__ >= 706
-#define MIN_VERSION_base(major1,major2,minor) (((major1) <= 4) && ((major2) <= 6))
-#else
-#define MIN_VERSION_base(major1,major2,minor) 0
-#endif
-#endif
-
-#ifdef __GLASGOW_HASKELL__
-#define OVERLOADED_STRINGS 1
-#endif
-
-#ifdef OVERLOADED_STRINGS
-{-# LANGUAGE OverloadedStrings #-}
-#endif
+#include "boxes.h"
 
 -----------------------------------------------------------------------------
 -- |

@@ -80,7 +80,10 @@ module Text.PrettyPrint.Boxes
 
 #if MIN_VERSION_base(4,8,0)
 import Prelude hiding (Word)
+#else
+import Data.Foldable (Foldable)
 #endif
+import Data.Foldable (toList)
 
 #if MIN_VERSION_base(4,4,0)
 import Data.String (words, unwords)
@@ -194,35 +197,37 @@ t // b = vcat left [t,b]
 t /+/ b = vcat left [t, emptyBox 1 0, b]
 
 -- | Glue a list of boxes together horizontally, with the given alignment.
-hcat :: Alignment -> [Box] -> Box
-hcat a bs = Box h w (Row $ map (alignVert a h) bs)
-  where h = maximum . (0:) . map rows $ bs
-        w = sum . map cols $ bs
+hcat :: Foldable f => Alignment -> f Box -> Box
+hcat a bs = Box h w (Row $ map (alignVert a h) bsl)
+  where h = maximum . (0:) . map rows $ bsl
+        w = sum . map cols $ bsl
+        bsl = toList bs
 
 -- | @hsep sep a bs@ lays out @bs@ horizontally with alignment @a@,
 --   with @sep@ amount of space in between each.
-hsep :: Int -> Alignment -> [Box] -> Box
+hsep :: Foldable f => Int -> Alignment -> f Box -> Box
 hsep sep a bs = punctuateH a (emptyBox 0 sep) bs
 
 -- | Glue a list of boxes together vertically, with the given alignment.
-vcat :: Alignment -> [Box] -> Box
-vcat a bs = Box h w (Col $ map (alignHoriz a w) bs)
-  where h = sum . map rows $ bs
-        w = maximum . (0:) . map cols $ bs
+vcat :: Foldable f => Alignment -> f Box -> Box
+vcat a bs = Box h w (Col $ map (alignHoriz a w) bsl)
+  where h = sum . map rows $ bsl
+        w = maximum . (0:) . map cols $ bsl
+        bsl = toList bs
 
 -- | @vsep sep a bs@ lays out @bs@ vertically with alignment @a@,
 --   with @sep@ amount of space in between each.
-vsep :: Int -> Alignment -> [Box] -> Box
-vsep sep a bs = punctuateV a (emptyBox sep 0) bs
+vsep :: Foldable f => Int -> Alignment -> f Box -> Box
+vsep sep a bs = punctuateV a (emptyBox sep 0) (toList bs)
 
 -- | @punctuateH a p bs@ horizontally lays out the boxes @bs@ with a
 --   copy of @p@ interspersed between each.
-punctuateH :: Alignment -> Box -> [Box] -> Box
-punctuateH a p bs = hcat a (intersperse p bs)
+punctuateH :: Foldable f => Alignment -> Box -> f Box -> Box
+punctuateH a p bs = hcat a (intersperse p (toList bs))
 
 -- | A vertical version of 'punctuateH'.
-punctuateV :: Alignment -> Box -> [Box] -> Box
-punctuateV a p bs = vcat a (intersperse p bs)
+punctuateV :: Foldable f => Alignment -> Box -> f Box -> Box
+punctuateV a p bs = vcat a (intersperse p (toList bs))
 
 --------------------------------------------------------------------------------
 --  Paragraph flowing  ---------------------------------------------------------
@@ -243,7 +248,7 @@ columns a w h t = map (mkParaBox a h) . chunksOf h $ flow w t
 -- | @mkParaBox a n s@ makes a box of height @n@ with the text @s@
 --   aligned according to @a@.
 mkParaBox :: Alignment -> Int -> [String] -> Box
-mkParaBox a n = alignVert top n . vcat a . map text
+mkParaBox a n = alignVert top n . vcat a . map text . toList
 
 -- | Flow the given text into the given width.
 flow :: Int -> String -> [String]

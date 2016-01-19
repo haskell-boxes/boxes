@@ -81,7 +81,8 @@ module Text.PrettyPrint.Boxes
 #if MIN_VERSION_base(4,8,0)
 import Prelude hiding (Word)
 #else
-import Data.Foldable (Foldable)
+import Data.Foldable (Foldable (foldr))
+import Prelude hiding (foldr)
 #endif
 import Data.Foldable (toList)
 
@@ -199,9 +200,9 @@ t /+/ b = vcat left [t, emptyBox 1 0, b]
 -- | Glue a list of boxes together horizontally, with the given alignment.
 hcat :: Foldable f => Alignment -> f Box -> Box
 hcat a bs = Box h w (Row $ map (alignVert a h) bsl)
-  where h = maximum . (0:) . map rows $ bsl
-        w = sum . map cols $ bsl
-        bsl = toList bs
+  where
+    (w, h) = sumMax cols 0 rows bsl
+    bsl = toList bs
 
 -- | @hsep sep a bs@ lays out @bs@ horizontally with alignment @a@,
 --   with @sep@ amount of space in between each.
@@ -211,9 +212,18 @@ hsep sep a bs = punctuateH a (emptyBox 0 sep) bs
 -- | Glue a list of boxes together vertically, with the given alignment.
 vcat :: Foldable f => Alignment -> f Box -> Box
 vcat a bs = Box h w (Col $ map (alignHoriz a w) bsl)
-  where h = sum . map rows $ bsl
-        w = maximum . (0:) . map cols $ bsl
-        bsl = toList bs
+  where
+    (h, w) = sumMax rows 0 cols bsl
+    bsl = toList bs
+
+-- Calculate a sum and a maximum over a list in one pass. If the list is
+-- empty, the maximum is reported as the given default. This would
+-- normally be done using the foldl library, but we don't want that
+-- dependency.
+sumMax :: (Num n, Ord b, Foldable f) => (a -> n) -> b -> (a -> b) -> f a -> (n, b)
+sumMax f defaultMax g as = foldr go (,) as 0 defaultMax
+  where
+    go a r n b = (r $! f a + n) $! g a `max` b
 
 -- | @vsep sep a bs@ lays out @bs@ vertically with alignment @a@,
 --   with @sep@ amount of space in between each.
@@ -248,7 +258,7 @@ columns a w h t = map (mkParaBox a h) . chunksOf h $ flow w t
 -- | @mkParaBox a n s@ makes a box of height @n@ with the text @s@
 --   aligned according to @a@.
 mkParaBox :: Alignment -> Int -> [String] -> Box
-mkParaBox a n = alignVert top n . vcat a . map text . toList
+mkParaBox a n = alignVert top n . vcat a . map text
 
 -- | Flow the given text into the given width.
 flow :: Int -> String -> [String]
@@ -275,7 +285,7 @@ getLines (Para _ (Block ls l))
 data Line = Line { lLen :: Int, getWords :: [Word] }
 
 mkLine :: [Word] -> Line
-mkLine ws = Line (sum (map wLen ws) + length ws - 1) ws
+mkLine ws = Line (sum (map ((+1) . wLen) ws) - 1) ws
 
 startLine :: Word -> Line
 startLine = mkLine . (:[])
@@ -304,13 +314,13 @@ wordFits pw w l = lLen l == 0 || lLen l + wLen w + 1 <= pw
 --   contents and height of @bx@, horizontally aligned according to
 --   @algn@.
 alignHoriz :: Alignment -> Int -> Box -> Box
-alignHoriz a c b = Box (rows b) c $ SubBox a AlignFirst b
+alignHoriz a c b = align a AlignFirst (rows b) c b
 
 -- | @alignVert algn n bx@ creates a box of height @n@, with the
 --   contents and width of @bx@, vertically aligned according to
 --   @algn@.
 alignVert :: Alignment -> Int -> Box -> Box
-alignVert a r b = Box r (cols b) $ SubBox AlignFirst a b
+alignVert a r b = align AlignFirst a r (cols b) b
 
 -- | @align ah av r c bx@ creates an @r@ x @c@ box with the contents
 --   of @bx@, aligned horizontally according to @ah@ and vertically

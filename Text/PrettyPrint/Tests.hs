@@ -1,6 +1,9 @@
 import Test.QuickCheck
 import Text.PrettyPrint.Boxes
 
+#if !MIN_VERSION_base(4,8,0)
+import Control.Applicative
+#endif
 import Control.Monad
 import System.Exit (exitFailure, exitSuccess)
 

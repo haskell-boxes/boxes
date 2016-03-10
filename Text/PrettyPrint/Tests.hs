@@ -18,10 +18,10 @@ instance Arbitrary Box where
 -- generated Box is likely to be. This is necessary in order to avoid
 -- the tests getting stuck trying to generate ridiculously huge Box values.
 arbBox :: Int -> Gen Box
-arbBox n = do
-  NonNegative r <- arbitrary
-  NonNegative c <- arbitrary
-  liftM (Box r c) (arbContent n)
+arbBox n =
+  Box <$> nonnegative <*> nonnegative <*> arbContent n
+  where
+  nonnegative = getNonNegative <$> arbitrary
 
 instance Arbitrary Content where
   arbitrary = sized arbContent
@@ -34,13 +34,13 @@ instance Arbitrary Content where
 --
 -- See also section 3.2 of http://www.cs.tufts.edu/%7Enr/cs257/archive/john-hughes/quick.pdf
 arbContent :: Int -> Gen Content
-arbContent 0 = return Blank
+arbContent 0 = pure Blank
 arbContent n =
-  oneof [ return Blank
-        , liftM Text arbitrary
-        , liftM Row (halveSize (listOf box))
-        , liftM Col (halveSize (listOf box))
-        , liftM3 SubBox arbitrary arbitrary (halveSize box)
+  oneof [ pure Blank
+        , Text <$> arbitrary
+        , Row <$> halveSize (listOf box)
+        , Col <$> halveSize (listOf box)
+        , SubBox <$> arbitrary <*> arbitrary <*> halveSize box
         ]
   where
   halveSize = scale (`quot` 2)

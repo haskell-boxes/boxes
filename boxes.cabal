@@ -31,4 +31,4 @@ Test-Suite test-boxes
 
 source-repository head
   type: git
-  location: git://github.com/treeowl/boxes.git
+  location: https://github.com/treeowl/boxes.git

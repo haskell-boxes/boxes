@@ -78,7 +78,9 @@ module Text.PrettyPrint.Boxes
 
     ) where
 
-#if MIN_VERSION_base(4,8,0)
+#if MIN_VERSION_base(4,11,0)
+import Prelude hiding ( (<>), Word )
+#elif MIN_VERSION_base(4,8,0)
 import Prelude hiding (Word)
 #else
 import Data.Foldable (Foldable (foldr))

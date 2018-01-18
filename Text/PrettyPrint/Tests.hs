@@ -7,6 +7,10 @@ import Control.Applicative
 import Control.Monad
 import System.Exit (exitFailure, exitSuccess)
 
+#if MIN_VERSION_base(4,11,0)
+import Prelude hiding ((<>))
+#endif
+
 instance Arbitrary Alignment where
   arbitrary = elements [ AlignFirst
                        , AlignCenter1

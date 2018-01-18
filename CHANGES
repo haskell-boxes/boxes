@@ -1,3 +1,6 @@
+X.Y.Z: TODO
+  * Preparation for supporting GHC 8.4.1
+
 0.1.4: January 14, 2015
   * Require Cabal >= 1.9.2
   * Require CPP

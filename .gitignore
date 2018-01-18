@@ -1,4 +1,5 @@
 *.[oa]
+*.cabal-sandbox/
 *.hi
 *.s
 *.prof
@@ -6,3 +7,4 @@
 *.dyn_hi
 *.dyn_o
 /dist
+cabal.sandbox.config

@@ -1,5 +1,5 @@
 name:                boxes
-version:             0.1.4
+version:             0.1.5
 synopsis:            2D text pretty-printing library
 description:         A pretty-printing library for laying out text in
                      two dimensions, using a simple box model.
@@ -27,6 +27,7 @@ Test-Suite test-boxes
   extensions:        CPP
   include-dirs:      include
   cpp-options:       -DTESTING
+  other-modules:     Text.PrettyPrint.Boxes
 -- Export some internals so the tests can get at them
 
 source-repository head

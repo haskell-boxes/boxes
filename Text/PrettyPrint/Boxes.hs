@@ -182,7 +182,7 @@ text t = Box 1 (length t) (Text t)
 -- | Paste two boxes together horizontally, using a default (top)
 --   alignment.
 (<>) :: Box -> Box -> Box
-l <> r = hcat top [l,r]
+l <> r = hcat top [l,nullBox]
 
 -- | Paste two boxes together horizontally with a single intervening
 --   column of space, using a default (top) alignment.

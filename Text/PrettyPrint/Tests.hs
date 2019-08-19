@@ -63,9 +63,17 @@ prop_empty_left_id b  = nullBox <> b ==== b
 prop_empty_top_id b   = nullBox // b ==== b
 prop_empty_bot_id b   = b // nullBox ==== b
 
-main = do
-  quickCheck prop_render_text
-  quickCheck prop_empty_right_id
-  quickCheck prop_empty_left_id
-  quickCheck prop_empty_top_id
-  quickCheck prop_empty_bot_id
+main = quickCheckOrError
+    [ quickCheckResult prop_render_text
+    , quickCheckResult prop_empty_right_id
+    , quickCheckResult prop_empty_left_id
+    , quickCheckResult prop_empty_top_id
+    , quickCheckResult prop_empty_bot_id
+    ]
+
+quickCheckOrError :: [IO Result] -> IO ()
+quickCheckOrError xs = sequence xs >>= \results ->
+    let n = (length . filter (not . isSuccess)) results
+    in if n == 0 then return () else do
+            putStrLn $ "There are " ++ show n ++ " failing checks! Exiting with error."
+            exitFailure

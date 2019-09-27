@@ -17,6 +17,7 @@ cabal-version:       >= 1.9.2
 library
   build-depends:     base >= 3 && < 5, split >=0.2 && <0.3
   exposed-modules:   Text.PrettyPrint.Boxes
+                   , Text.PrettyPrint.Boxes.Internal
   extensions:        CPP
   include-dirs:      include
 
@@ -26,8 +27,8 @@ Test-Suite test-boxes
   build-depends:     base >= 3 && < 5, split >=0.2 && <0.3, QuickCheck
   extensions:        CPP
   include-dirs:      include
-  cpp-options:       -DTESTING
   other-modules:     Text.PrettyPrint.Boxes
+                   , Text.PrettyPrint.Boxes.Internal
 -- Export some internals so the tests can get at them
 
 source-repository head

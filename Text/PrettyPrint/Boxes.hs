@@ -16,11 +16,7 @@
 -----------------------------------------------------------------------------
 module Text.PrettyPrint.Boxes
     ( -- * Constructing boxes
-#ifdef TESTING
-      Box(Box, content)
-#else
       Box
-#endif
     , nullBox
     , emptyBox
     , char
@@ -44,15 +40,8 @@ module Text.PrettyPrint.Boxes
 
     -- * Alignment
 
-#ifdef TESTING
-    , Alignment(..)
-#else
     , Alignment
-#endif
 
-#ifdef TESTING
-    , Content(..)
-#endif
     , left, right
     , top, bottom
     , center1, center2
@@ -103,26 +92,13 @@ import Data.List (foldl', intersperse)
 
 import Data.List.Split (chunksOf)
 
--- | The basic data type.  A box has a specified size and some sort of
---   contents.
-data Box = Box { rows    :: Int
-               , cols    :: Int
-               , content :: Content
-               }
-  deriving (Show)
+import Text.PrettyPrint.Boxes.Internal
 
 #ifdef OVERLOADED_STRINGS
 -- | Convenient ability to use bare string literals as boxes.
 instance IsString Box where
   fromString = text
 #endif
-
--- | Data type for specifying the alignment of boxes.
-data Alignment = AlignFirst    -- ^ Align at the top/left.
-               | AlignCenter1  -- ^ Centered, biased to the top/left.
-               | AlignCenter2  -- ^ Centered, biased to the bottom/right.
-               | AlignLast     -- ^ Align at the bottom/right.
-  deriving (Eq, Read, Show)
 
 -- | Align boxes along their tops.
 top :: Alignment
@@ -149,15 +125,6 @@ center1    = AlignCenter1
 --   unequal parities.
 center2 :: Alignment
 center2    = AlignCenter2
-
--- | Contents of a box.
-data Content = Blank        -- ^ No content.
-             | Text String  -- ^ A raw string.
-             | Row [Box]    -- ^ A row of sub-boxes.
-             | Col [Box]    -- ^ A column of sub-boxes.
-             | SubBox Alignment Alignment Box
-                            -- ^ A sub-box with a specified alignment.
-  deriving (Show)
 
 -- | The null box, which has no content and no size.  It is quite
 --   useless.

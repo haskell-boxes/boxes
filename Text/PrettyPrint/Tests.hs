@@ -1,5 +1,6 @@
 import Test.QuickCheck
 import Text.PrettyPrint.Boxes
+import Text.PrettyPrint.Boxes.Internal
 
 #if !MIN_VERSION_base(4,8,0)
 import Control.Applicative

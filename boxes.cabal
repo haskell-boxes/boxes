@@ -15,20 +15,20 @@ cabal-version:       >= 1.9.2
 -- Minimum Cabal version supporting test suites
 
 library
+  hs-source-dirs:    src
   build-depends:     base >= 3 && < 5, split >=0.2 && <0.3
   exposed-modules:   Text.PrettyPrint.Boxes
+                   , Text.PrettyPrint.Boxes.Internal
   extensions:        CPP
   include-dirs:      include
 
 Test-Suite test-boxes
+  hs-source-dirs:    test
   type:              exitcode-stdio-1.0
-  main-is:           Text/PrettyPrint/Tests.hs
-  build-depends:     base >= 3 && < 5, split >=0.2 && <0.3, QuickCheck
+  main-is:           Tests.hs
+  build-depends:     base >= 3 && < 5, QuickCheck, boxes
+  other-modules:     Definitions
   extensions:        CPP
-  include-dirs:      include
-  cpp-options:       -DTESTING
-  other-modules:     Text.PrettyPrint.Boxes
--- Export some internals so the tests can get at them
 
 source-repository head
   type: git

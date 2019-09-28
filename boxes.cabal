@@ -27,6 +27,7 @@ Test-Suite test-boxes
   type:              exitcode-stdio-1.0
   main-is:           Tests.hs
   build-depends:     base >= 3 && < 5, QuickCheck, boxes
+  other-modules:     Definitions
   extensions:        CPP
 
 source-repository head

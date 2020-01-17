@@ -42,6 +42,8 @@ module Text.PrettyPrint.Boxes
 
     , punctuateH, punctuateV
 
+    , formatTable
+
     -- * Alignment
 
 #ifdef TESTING
@@ -240,6 +242,26 @@ punctuateH a p bs = hcat a (intersperse p (toList bs))
 -- | A vertical version of 'punctuateH'.
 punctuateV :: Foldable f => Alignment -> Box -> f Box -> Box
 punctuateV a p bs = vcat a (intersperse p (toList bs))
+
+--------------------------------------------------------------------------------
+-- Format table helper  --------------------------------------------------------
+--------------------------------------------------------------------------------
+
+-- | @formatTable als sep cols@ takes a list of alignments, and a uniform nested
+-- list of lists, such as [[\"Peter\", "1", "10.5"], [\"John\", "2", "3.2"]],
+-- and produces a formatted table, by applying the alignment to each column
+-- (the alignments are cycled, so if you only provide a single one, it will
+-- be automatically applied to all columns), separating the columns horizontally
+-- with @sep@ spaces. The result is a @Box@.
+formatTable :: [Alignment] -> Int -> [[String]] -> Box
+formatTable als sep cols = punctuateH top sep' $ map (uncurry singleCol) colal
+  where als' = cycle als
+        cols' = transpose cols
+        colal = zip als' cols'
+        sep' = emptyBox 0 sep
+
+singleCol :: Alignment -> [String] -> Box
+singleCol al = vcat al . map text
 
 --------------------------------------------------------------------------------
 --  Paragraph flowing  ---------------------------------------------------------

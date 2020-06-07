@@ -42,6 +42,8 @@ module Text.PrettyPrint.Boxes
 
     , punctuateH, punctuateV
 
+    , table
+
     -- * Alignment
 
 #ifdef TESTING
@@ -99,7 +101,7 @@ import Data.String (IsString(..))
 #endif
 
 import Control.Arrow ((***), first)
-import Data.List (foldl', intersperse)
+import Data.List (foldl', intersperse, transpose)
 
 import Data.List.Split (chunksOf)
 
@@ -240,6 +242,16 @@ punctuateH a p bs = hcat a (intersperse p (toList bs))
 -- | A vertical version of 'punctuateH'.
 punctuateV :: Foldable f => Alignment -> Box -> f Box -> Box
 punctuateV a p bs = vcat a (intersperse p (toList bs))
+
+-- | @table ah av bss@ lays out the boxes @bss@ in a table. Each element of
+-- @bss@ is treated as a row of the table. The height of each row and width of
+-- each column is computed from the sizes of the boxes they contain; the
+-- contents of the boxes are aligned horizontally according to @ah@ and
+-- vertically according to @av@.
+table :: (Foldable f, Foldable g) => Alignment -> Alignment -> f (g Box) -> Box
+table ah av bss_ = vcat ah (hcat av . zipWith (alignHoriz ah) ws <$> bss) where
+  ws = map (\bs -> maximum (0:map cols bs)) (transpose bss)
+  bss = toList <$> toList bss_
 
 --------------------------------------------------------------------------------
 --  Paragraph flowing  ---------------------------------------------------------

@@ -1,35 +1,60 @@
-name:                boxes
-version:             0.1.5
-synopsis:            2D text pretty-printing library
-description:         A pretty-printing library for laying out text in
-                     two dimensions, using a simple box model.
-category:            Text
-license:             BSD3
-license-file:        LICENSE
-extra-source-files:  CHANGES, README.md, include/boxes.h
+name:               boxes
+version:            0.1.5
+synopsis:           2D text pretty-printing library
+description:
+  A pretty-printing library for laying out text in
+  two dimensions, using a simple box model.
 
-author:              Brent Yorgey
-maintainer:          David Feuer <David.Feuer@gmail.com>
-build-type:          Simple
-cabal-version:       >= 1.9.2
--- Minimum Cabal version supporting test suites
+category:           Text
+license:            BSD3
+license-file:       LICENSE
+extra-source-files:
+  CHANGES
+  README.md
+  include/boxes.h
+
+author:             Brent Yorgey
+maintainer:         David Feuer <David.Feuer@gmail.com>
+build-type:         Simple
+cabal-version:      >=1.10
+tested-with:
+  GHC ==7.0.4
+   || ==7.2.2
+   || ==7.4.2
+   || ==7.6.3
+   || ==7.8.4
+   || ==7.10.3
+   || ==8.0.2
+   || ==8.2.2
+   || ==8.4.4
+   || ==8.6.5
+   || ==8.8.4
+   || ==8.10.3
 
 library
-  build-depends:     base >= 3 && < 5, split >=0.2 && <0.3
-  exposed-modules:   Text.PrettyPrint.Boxes
-  extensions:        CPP
-  include-dirs:      include
+  default-language:   Haskell2010
+  build-depends:
+      base   >=4.3 && <5
+    , split  >=0.2 && <0.3
 
-Test-Suite test-boxes
-  type:              exitcode-stdio-1.0
-  main-is:           Text/PrettyPrint/Tests.hs
-  build-depends:     base >= 3 && < 5, split >=0.2 && <0.3, QuickCheck
-  extensions:        CPP
-  include-dirs:      include
-  cpp-options:       -DTESTING
-  other-modules:     Text.PrettyPrint.Boxes
--- Export some internals so the tests can get at them
+  exposed-modules:    Text.PrettyPrint.Boxes
+  default-extensions: CPP
+  include-dirs:       include
+
+test-suite test-boxes
+  default-language:   Haskell2010
+  type:               exitcode-stdio-1.0
+  main-is:            Text/PrettyPrint/Tests.hs
+  build-depends:
+      base
+    , QuickCheck
+    , split       >=0.2 && <0.3
+
+  default-extensions: CPP
+  include-dirs:       include
+  cpp-options:        -DTESTING
+  other-modules:      Text.PrettyPrint.Boxes
 
 source-repository head
-  type: git
+  type:     git
   location: https://github.com/treeowl/boxes.git

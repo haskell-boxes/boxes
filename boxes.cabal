@@ -46,11 +46,10 @@ test-suite test-boxes
   main-is:            Text/PrettyPrint/Tests.hs
   build-depends:
       base
-    , QuickCheck
+    , QuickCheck >=2.14.2
 
   default-extensions: CPP
   include-dirs:       include
-  cpp-options:        -DTESTING
   other-modules:      Text.PrettyPrint.Boxes
 
 source-repository head

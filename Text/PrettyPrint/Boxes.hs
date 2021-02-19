@@ -16,11 +16,7 @@
 -----------------------------------------------------------------------------
 module Text.PrettyPrint.Boxes
     ( -- * Constructing boxes
-#ifdef TESTING
-      Box(Box, content)
-#else
       Box
-#endif
     , nullBox
     , emptyBox
     , char
@@ -44,15 +40,8 @@ module Text.PrettyPrint.Boxes
 
     -- * Alignment
 
-#ifdef TESTING
-    , Alignment(..)
-#else
     , Alignment
-#endif
 
-#ifdef TESTING
-    , Content(..)
-#endif
     , left, right
     , top, bottom
     , center1, center2
@@ -186,6 +175,7 @@ l <> r = hcat top [l,r]
 --   column of space, using a default (top) alignment.
 (<+>) :: Box -> Box -> Box
 l <+> r = hcat top [l, emptyBox 0 1, r]
+infixr 6 <+> -- matches <>
 
 -- | Paste two boxes together vertically, using a default (left)
 --   alignment.

@@ -245,11 +245,11 @@ flow n t = map (take n)
          . getLines
          $ foldl' addWordP (emptyPara n) (map mkWord . words $ t)
 
-data Para = Para { paraWidth   :: Int
-                 , paraContent :: ParaContent
+data Para = Para { _paraWidth   :: Int
+                 , _paraContent :: ParaContent
                  }
-data ParaContent = Block { fullLines :: [Line]
-                         , lastLine  :: Line
+data ParaContent = Block { _fullLines :: [Line]
+                         , _lastLine  :: Line
                          }
 
 emptyPara :: Int -> Para
@@ -355,7 +355,7 @@ takeP b n (x:xs)          = x : takeP b (n-1) xs
 --   the specified alignment within the window; @takePA algn a n xs@
 --   returns the contents of this window.
 takePA :: Alignment -> a -> Int -> [a] -> [a]
-takePA c b n = glue . (takeP b (numRev c n) *** takeP b (numFwd c n)) . split
+takePA c b n0 = glue . (takeP b (numRev c n0) *** takeP b (numFwd c n0)) . split
   where split t = first reverse . splitAt (numRev c (length t)) $ t
         glue    = uncurry (++) . first reverse
         numFwd AlignFirst    n = n

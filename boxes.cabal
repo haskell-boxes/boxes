@@ -33,6 +33,8 @@ tested-with:
 library
   default-language:   Haskell2010
   build-depends:      base >=4.3 && <5
+  hs-source-dirs:     src
+  ghc-options:        -Wall
 
   if !impl(ghc >=8.0)
     build-depends: semigroups >=0.19.1 && <0.20
@@ -43,15 +45,17 @@ test-suite test-boxes
   default-language:   Haskell2010
   type:               exitcode-stdio-1.0
   main-is:            Text/PrettyPrint/Tests.hs
+  hs-source-dirs:     test
+  ghc-options:        -Wall -fno-warn-orphans
+  default-extensions: CPP
   build-depends:
       base
+    , boxes
     , QuickCheck >=2.14.2 && <2.15
 
   if !impl(ghc >=8.0)
     build-depends: semigroups
 
-  default-extensions: CPP
-  other-modules:      Text.PrettyPrint.Boxes
 
 source-repository head
   type:     git

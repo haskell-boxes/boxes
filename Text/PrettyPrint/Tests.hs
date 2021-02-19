@@ -5,7 +5,7 @@ import Text.PrettyPrint.Boxes
 import Control.Applicative
 #endif
 import Control.Monad
-import System.Exit (exitFailure, exitSuccess)
+import System.Exit (exitFailure)
 
 #if MIN_VERSION_base(4,11,0)
 import Prelude hiding ((<>))
@@ -55,10 +55,12 @@ arbBox r c
         return $ vcat a [ b1, b2 ]
 
 -- extensional equivalence for Boxes
+(====) :: Box -> Box -> Property
 b1 ==== b2 = render b1 === render b2
 infix 4 ====
 
 -- | "Area"
+prop_sizes :: Box -> Property
 prop_sizes b = label (l (rows b * cols b)) True where
   l n | n <= 0    = "0"
       | n < 10    = "<10"
@@ -70,16 +72,28 @@ prop_sizes b = label (l (rows b * cols b)) True where
       | n < 1000  = "<1000"
       | otherwise = "large"
 
-prop_render_text s = render (text s) == (s ++ "\n")
+prop_render_text :: String -> Property
+prop_render_text s = render (text s) === (s ++ "\n")
 
+prop_empty_right_id :: Box -> Property
 prop_empty_right_id b = b <> nullBox ==== b
+
+prop_empty_left_id :: Box -> Property
 prop_empty_left_id b  = nullBox <> b ==== b
+
+prop_empty_top_id :: Box -> Property
 prop_empty_top_id b   = nullBox // b ==== b
+
+prop_empty_bot_id :: Box -> Property
 prop_empty_bot_id b   = b // nullBox ==== b
+
 prop_associativity_horizontal :: Box -> Box -> Box -> Property
 prop_associativity_horizontal a b c = a <> (b <> c) ==== (a <> b) <> c
+
+prop_associativity_vertical :: Box -> Box -> Box -> Property
 prop_associativity_vertical   a b c = a // (b // c) ==== (a // b) // c
 
+main :: IO ()
 main = quickCheckOrError
     [ quickCheckResult prop_sizes
     , quickCheckResult prop_render_text

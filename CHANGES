@@ -1,5 +1,6 @@
 0.2.0: ?, 2021
   * Change to use <> from Semigroup. Fixity is changed, but shouldn't affect things.
+  * `text` accounts for newlines. Use (new) combinator `line` for single lines.
 
 0.1.5: March 10, 2018
   * Add support for GHC 8.4.1. Thanks, Andrés Sicard-Ramírez.

@@ -11,6 +11,8 @@ import System.Exit (exitFailure)
 import Prelude hiding ((<>))
 #endif
 
+import Data.Char (isSpace)
+import Data.List.Compat (dropWhileEnd)
 import Data.Semigroup ((<>))
 
 instance Arbitrary Alignment where
@@ -73,7 +75,10 @@ prop_sizes b = label (l (rows b * cols b)) True where
       | otherwise = "large"
 
 prop_render_text :: String -> Property
-prop_render_text s = render (text s) === (s ++ "\n")
+prop_render_text s = trimEnds (render (text s)) === trimEnds s
+
+trimEnds :: String -> String
+trimEnds = unlines . map (dropWhileEnd isSpace) . lines
 
 prop_empty_right_id :: Box -> Property
 prop_empty_right_id b = b <> nullBox ==== b
@@ -93,6 +98,36 @@ prop_associativity_horizontal a b c = a <> (b <> c) ==== (a <> b) <> c
 prop_associativity_vertical :: Box -> Box -> Box -> Property
 prop_associativity_vertical   a b c = a // (b // c) ==== (a // b) // c
 
+prop_issue38_text_nl_a :: Property
+prop_issue38_text_nl_a =
+    render (align center1 center1 5 5 $ text "x") === unlines
+    [ "     "
+    , "     "
+    , "  x  "
+    , "     "
+    , "     "
+    ]
+
+prop_issue38_text_nl_b :: Property
+prop_issue38_text_nl_b =
+    render (align center1 center1 5 5 $ text "x\ny") === unlines
+    [ "     "
+    , "     "
+    , "  x  "
+    , "  y  "
+    , "     "
+    ]
+
+prop_issue38_text_nl_c :: Property
+prop_issue38_text_nl_c =
+    render (align center1 center1 5 5 $ line "x\ny") === unlines
+    [ "     "
+    , "     "
+    , "  xy "
+    , "     "
+    , "     "
+    ]
+
 main :: IO ()
 main = quickCheckOrError
     [ quickCheckResult prop_sizes
@@ -103,6 +138,10 @@ main = quickCheckOrError
     , quickCheckResult prop_empty_bot_id
     , quickCheckResult prop_associativity_horizontal
     , quickCheckResult prop_associativity_vertical
+
+    , quickCheckResult prop_issue38_text_nl_a
+    , quickCheckResult prop_issue38_text_nl_b
+    , quickCheckResult prop_issue38_text_nl_c
     ]
 
 quickCheckOrError :: [IO Result] -> IO ()

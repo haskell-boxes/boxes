@@ -18,6 +18,7 @@ module Text.PrettyPrint.Boxes
     , emptyBox
     , char
     , text
+    , line
     , para
     , columns
 
@@ -63,12 +64,12 @@ module Text.PrettyPrint.Boxes
 
     ) where
 
-import Prelude (words, unwords, IO, String, Bool, Char, Ord (..), (||), Eq (..), Read, Show, Num (..), putStr, (.), ($), flip, div, otherwise, unlines, ($!), uncurry)
+import Prelude (words, unwords, IO, String, Bool, Char, Ord (..), (||), (&&), Eq (..), Read, Show, Num (..), putStr, (.), ($), flip, div, otherwise, lines, unlines, ($!), uncurry)
 
 import Data.Int (Int)
 import Control.Arrow ((***), first)
 import Data.Foldable (Foldable, toList, concatMap, foldr, foldl')
-import Data.List (map, zipWith, replicate, splitAt, repeat, reverse, take, length, intersperse, (++))
+import Data.List (map, zipWith, replicate, splitAt, repeat, reverse, take, length, intersperse, (++), filter)
 import Data.String (IsString(..))
 import Data.Semigroup (Semigroup (..))
 import Data.Monoid (Monoid (..))
@@ -146,9 +147,20 @@ emptyBox r c = Box r c Blank
 char :: Char -> Box
 char c = Box 1 1 (Text [c])
 
--- | A (@1 x len@) box containing a string of length @len@.
+-- | A box containing lines of text.
+--
+-- May be empty.
 text :: String -> Box
-text t = Box 1 (length t) (Text t)
+text s = vcat left (map unsafeLine (lines s))
+
+-- | A (@1 x len@) box containing a string length @len@
+--
+-- The newline character are filtered out.
+line :: String -> Box
+line = unsafeLine . filter (\c -> c /= '\n' && c /= '\r')
+
+unsafeLine :: String -> Box
+unsafeLine t = Box 1 (length t) (Text t)
 
 -- | Paste two boxes together horizontally, using a default (top)
 --   alignment.

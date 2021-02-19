@@ -101,8 +101,6 @@ import Data.String (IsString(..))
 import Control.Arrow ((***), first)
 import Data.List (foldl', intersperse)
 
-import Data.List.Split (chunksOf)
-
 -- | The basic data type.  A box has a specified size and some sort of
 --   contents.
 data Box = Box { rows    :: Int
@@ -432,3 +430,18 @@ resizeBoxAligned r c ha va = takePA va (blanks c) r . map (takePA ha ' ' c)
 -- | A convenience function for rendering a box to stdout.
 printBox :: Box -> IO ()
 printBox = putStr . render
+
+-------------------------------------------------------------------------------
+-- Utilities
+-------------------------------------------------------------------------------
+
+-- |
+--
+-- >>> chunksOf 3 [1..10]
+-- [[1,2,3],[4,5,6],[7,8,9],[10]]
+--
+chunksOf :: Int -> [a] -> [[a]]
+chunksOf n = go where
+    go [] = []
+    go xs = case splitAt n xs of
+        ~(ys,zs) -> ys : go zs

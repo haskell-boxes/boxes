@@ -11,6 +11,8 @@ import System.Exit (exitFailure, exitSuccess)
 import Prelude hiding ((<>))
 #endif
 
+import Data.Semigroup ((<>))
+
 instance Arbitrary Alignment where
   arbitrary = elements [ top, bottom, center1, center2 ]
 
@@ -53,7 +55,7 @@ arbBox r c
         return $ vcat a [ b1, b2 ]
 
 -- extensional equivalence for Boxes
-b1 ==== b2 = render b1 == render b2
+b1 ==== b2 = render b1 === render b2
 infix 4 ====
 
 -- | "Area"
@@ -74,6 +76,7 @@ prop_empty_right_id b = b <> nullBox ==== b
 prop_empty_left_id b  = nullBox <> b ==== b
 prop_empty_top_id b   = nullBox // b ==== b
 prop_empty_bot_id b   = b // nullBox ==== b
+prop_associativity_horizontal :: Box -> Box -> Box -> Property
 prop_associativity_horizontal a b c = a <> (b <> c) ==== (a <> b) <> c
 prop_associativity_vertical   a b c = a // (b // c) ==== (a // b) // c
 

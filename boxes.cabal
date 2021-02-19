@@ -11,7 +11,6 @@ license-file:       LICENSE
 extra-source-files:
   CHANGES
   README.md
-  include/boxes.h
 
 author:             Brent Yorgey
 maintainer:         David Feuer <David.Feuer@gmail.com>
@@ -33,12 +32,12 @@ tested-with:
 
 library
   default-language:   Haskell2010
-  build-depends:
-      base   >=4.3 && <5
+  build-depends:      base >=4.3 && <5
+
+  if !impl(ghc >=8.0)
+    build-depends: semigroups >=0.19.1 && <0.20
 
   exposed-modules:    Text.PrettyPrint.Boxes
-  default-extensions: CPP
-  include-dirs:       include
 
 test-suite test-boxes
   default-language:   Haskell2010
@@ -46,10 +45,12 @@ test-suite test-boxes
   main-is:            Text/PrettyPrint/Tests.hs
   build-depends:
       base
-    , QuickCheck >=2.14.2
+    , QuickCheck >=2.14.2 && <2.15
+
+  if !impl(ghc >=8.0)
+    build-depends: semigroups
 
   default-extensions: CPP
-  include-dirs:       include
   other-modules:      Text.PrettyPrint.Boxes
 
 source-repository head

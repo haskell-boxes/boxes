@@ -75,7 +75,7 @@ prop_sizes b = label (l (rows b * cols b)) True where
       | otherwise = "large"
 
 prop_render_text :: String -> Property
-prop_render_text s = trimEnds (render (text s)) === trimEnds s
+prop_render_text s = render (text s) === trimEnds s
 
 trimEnds :: String -> String
 trimEnds = unlines . map (dropWhileEnd isSpace) . lines
@@ -100,7 +100,7 @@ prop_associativity_vertical   a b c = a // (b // c) ==== (a // b) // c
 
 prop_issue38_text_nl_a :: Property
 prop_issue38_text_nl_a =
-    render (align center1 center1 5 5 $ text "x") === unlines
+    renderWithSpaces (align center1 center1 5 5 $ text "x") === unlines
     [ "     "
     , "     "
     , "  x  "
@@ -110,7 +110,7 @@ prop_issue38_text_nl_a =
 
 prop_issue38_text_nl_b :: Property
 prop_issue38_text_nl_b =
-    render (align center1 center1 5 5 $ text "x\ny") === unlines
+    renderWithSpaces (align center1 center1 5 5 $ text "x\ny") === unlines
     [ "     "
     , "     "
     , "  x  "
@@ -120,7 +120,7 @@ prop_issue38_text_nl_b =
 
 prop_issue38_text_nl_c :: Property
 prop_issue38_text_nl_c =
-    render (align center1 center1 5 5 $ line "x\ny") === unlines
+    renderWithSpaces (align center1 center1 5 5 $ line "x\ny") === unlines
     [ "     "
     , "     "
     , "  xy "

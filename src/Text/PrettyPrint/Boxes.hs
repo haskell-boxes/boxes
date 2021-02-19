@@ -3,14 +3,33 @@
 -- Module      :  Text.PrettyPrint.Boxes
 -- Copyright   :  (c) Brent Yorgey 2009
 -- License     :  BSD-style (see LICENSE)
--- Maintainer  :  David.Feuer@gmail.com
+-- Maintainer  :  oleg.grenrus@iki.fi
 -- Stability   :  experimental
 -- Portability :  portable
 --
 -- A pretty-printing library for laying out text in two dimensions,
 -- using a simple box model.
 --
------------------------------------------------------------------------------
+-- A simple example is rendering small box:
+--
+-- >>> printBox $ text "funny\nhat"
+-- funny
+-- hat
+--
+-- Next, we can have another box next to that
+--
+-- >>> printBox $ text "funny\nhat" <+> text "on-the-right"
+-- funny on-the-right
+-- hat
+--
+-- And continue adding boxes:
+--
+-- >>> printBox $  text "funny\nhat" <+> text "on-the-right" // text "long-string-below"
+-- funny on-the-right
+-- hat
+-- long-string-below
+--
+--
 module Text.PrettyPrint.Boxes
     ( -- * Constructing boxes
       Box
@@ -60,6 +79,7 @@ module Text.PrettyPrint.Boxes
     -- * Rendering boxes
 
     , render
+    , renderWithSpaces
     , printBox
 
     ) where
@@ -69,7 +89,8 @@ import Prelude (words, unwords, IO, String, Bool, Char, Ord (..), (||), (&&), Eq
 import Data.Int (Int)
 import Control.Arrow ((***), first)
 import Data.Foldable (Foldable, toList, concatMap, foldr, foldl')
-import Data.List (map, zipWith, replicate, splitAt, repeat, reverse, take, length, intersperse, (++), filter)
+import Data.List (null, map, zipWith, replicate, splitAt, repeat, reverse, take, length, intersperse, (++), filter)
+import Data.Char (isSpace)
 import Data.String (IsString(..))
 import Data.Semigroup (Semigroup (..))
 import Data.Monoid (Monoid (..))
@@ -182,6 +203,7 @@ infixr 6 <+> -- matches <>
 --   alignment.
 (//) :: Box -> Box -> Box
 t // b = vcat left [t,b]
+infixr 5 //, /+/
 
 -- | Paste two boxes together vertically with a single intervening row
 --   of space, using a default (left) alignment.
@@ -346,10 +368,18 @@ moveRight n b = alignHoriz right (cols b + n) b
 --  Implementation  ------------------------------------------------------------
 --------------------------------------------------------------------------------
 
--- | Render a 'Box' as a String, suitable for writing to the screen or
---   a file.
+-- | Render a 'Box' as a String, suitable for writing to the screen or a file.
+--
+-- Since 0.2.0 strips trailing whitespace.
 render :: Box -> String
-render = unlines . renderBox
+render = unlines . map (dropWhileEnd isSpace) . renderBox
+
+-- | Like 'render' but preserves end-of-line whitespace.
+renderWithSpaces :: Box -> String
+renderWithSpaces = unlines . renderBox
+
+dropWhileEnd :: (a -> Bool) -> [a] -> [a]
+dropWhileEnd p = foldr (\x xs -> if p x && null xs then [] else x : xs) []
 
 -- XXX make QC properties for takeP
 
@@ -426,11 +456,6 @@ printBox = putStr . render
 -- Utilities
 -------------------------------------------------------------------------------
 
--- |
---
--- >>> chunksOf 3 [1..10]
--- [[1,2,3],[4,5,6],[7,8,9],[10]]
---
 chunksOf :: Int -> [a] -> [[a]]
 chunksOf n = go where
     go [] = []

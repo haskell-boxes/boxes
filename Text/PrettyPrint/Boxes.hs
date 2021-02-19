@@ -1,6 +1,3 @@
-{-# LANGUAGE CPP #-}
-#include "boxes.h"
-
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Text.PrettyPrint.Boxes
@@ -26,7 +23,6 @@ module Text.PrettyPrint.Boxes
 
       -- * Layout of boxes
 
-    , (<>)
     , (<+>)
     , hcat
     , hsep
@@ -67,28 +63,18 @@ module Text.PrettyPrint.Boxes
 
     ) where
 
-#if MIN_VERSION_base(4,11,0)
-import Prelude hiding ( (<>), Word )
-#elif MIN_VERSION_base(4,8,0)
-import Prelude hiding (Word)
-#else
-import Data.Foldable (Foldable (foldr))
-import Prelude hiding (foldr)
-#endif
-import Data.Foldable (toList)
+import Prelude (words, unwords, IO, String, Bool, Char, Ord (..), (||), Eq (..), Read, Show, Num (..), putStr, (.), ($), flip, div, otherwise, unlines, ($!), uncurry)
 
-#if MIN_VERSION_base(4,4,0)
-import Data.String (words, unwords)
-#else
-import Data.List (words, unwords)
-#endif
-
-#ifdef OVERLOADED_STRINGS
-import Data.String (IsString(..))
-#endif
-
+import Data.Int (Int)
 import Control.Arrow ((***), first)
-import Data.List (foldl', intersperse)
+import Data.Foldable (Foldable, toList, concatMap, foldr, foldl')
+import Data.List (map, zipWith, replicate, splitAt, repeat, reverse, take, length, intersperse, (++))
+import Data.String (IsString(..))
+import Data.Semigroup (Semigroup (..))
+import Data.Monoid (Monoid (..))
+
+sum :: [Int] -> Int
+sum = foldl' (+) 0
 
 -- | The basic data type.  A box has a specified size and some sort of
 --   contents.
@@ -98,11 +84,9 @@ data Box = Box { rows    :: Int
                }
   deriving (Show)
 
-#ifdef OVERLOADED_STRINGS
 -- | Convenient ability to use bare string literals as boxes.
 instance IsString Box where
   fromString = text
-#endif
 
 -- | Data type for specifying the alignment of boxes.
 data Alignment = AlignFirst    -- ^ Align at the top/left.
@@ -168,8 +152,13 @@ text t = Box 1 (length t) (Text t)
 
 -- | Paste two boxes together horizontally, using a default (top)
 --   alignment.
-(<>) :: Box -> Box -> Box
-l <> r = hcat top [l,r]
+instance Semigroup Box where
+    l <> r = hcat top [l,r]
+
+instance Monoid Box where
+    mempty = nullBox
+    mappend = (<>)
+    mconcat = hcat top
 
 -- | Paste two boxes together horizontally with a single intervening
 --   column of space, using a default (top) alignment.

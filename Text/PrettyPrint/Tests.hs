@@ -12,50 +12,61 @@ import Prelude hiding ((<>))
 #endif
 
 instance Arbitrary Alignment where
-  arbitrary = elements [ AlignFirst
-                       , AlignCenter1
-                       , AlignCenter2
-                       , AlignLast
-                       ]
+  arbitrary = elements [ top, bottom, center1, center2 ]
 
 instance Arbitrary Box where
-  arbitrary = sized arbBox
+  arbitrary = do
+    r <- nonnegative
+    c <- nonnegative
+    arbBox r c
+    where
+      nonnegative = getNonNegative <$> arbitrary
 
 -- A sized generator for boxes. The larger the parameter is, the larger a
 -- generated Box is likely to be. This is necessary in order to avoid
 -- the tests getting stuck trying to generate ridiculously huge Box values.
-arbBox :: Int -> Gen Box
-arbBox n =
-  Box <$> nonnegative <*> nonnegative <*> arbContent n
-  where
-  nonnegative = getNonNegative <$> arbitrary
+arbBox :: Int -> Int -> Gen Box
+arbBox r c
+  | r <= 0 || c <= 0
+  = return nullBox
 
-instance Arbitrary Content where
-  arbitrary = sized arbContent
+  | r <= 1 || c <= 1
+  = fmap char (arbitrary `suchThat` (/= '\n'))
 
--- A sized generator for Content values. The larger the parameter is, the
--- larger a generated Content is likely to be. This is necessary in order to
--- avoid the tests getting stuck trying to generate ridiculously huge Content
--- values.
---
--- See also section 3.2 of http://www.cs.tufts.edu/%7Enr/cs257/archive/john-hughes/quick.pdf
-arbContent :: Int -> Gen Content
-arbContent 0 = pure Blank
-arbContent n =
-  oneof [ pure Blank
-        , Text <$> arbitrary
-        , Row <$> halveSize (listOf box)
-        , Col <$> halveSize (listOf box)
-        , SubBox <$> arbitrary <*> arbitrary <*> decrementSize box
-        ]
+  | otherwise
+  = oneof [ splitR, splitC, return (emptyBox r c) ]
   where
-  decrementSize = scale (\s -> max (s - 1) 0)
-  halveSize = scale (`quot` 2)
-  box = arbBox n
+    splitR = do
+        r1 <- chooseInt (1, r-1)
+        let r2 = r - r1
+        a <- arbitrary
+        b1 <- arbBox r1 c
+        b2 <- arbBox r2 c
+        return $ hcat a [ b1, b2 ]
+
+    splitC = do
+        c1 <- chooseInt (1, c-1)
+        let c2 = c - c1
+        a <- arbitrary
+        b1 <- arbBox r c1
+        b2 <- arbBox r c2
+        return $ vcat a [ b1, b2 ]
 
 -- extensional equivalence for Boxes
 b1 ==== b2 = render b1 == render b2
 infix 4 ====
+
+-- | "Area"
+prop_sizes b = label (l (rows b * cols b)) True where
+  l n | n <= 0    = "0"
+      | n < 10    = "<10"
+      | n < 20    = "<20"
+      | n < 50    = "<50"
+      | n < 100   = "<100"
+      | n < 200   = "<200"
+      | n < 500   = "<500"
+      | n < 1000  = "<1000"
+      | otherwise = "large"
 
 prop_render_text s = render (text s) == (s ++ "\n")
 
@@ -67,7 +78,8 @@ prop_associativity_horizontal a b c = a <> (b <> c) ==== (a <> b) <> c
 prop_associativity_vertical   a b c = a // (b // c) ==== (a // b) // c
 
 main = quickCheckOrError
-    [ quickCheckResult prop_render_text
+    [ quickCheckResult prop_sizes
+    , quickCheckResult prop_render_text
     , quickCheckResult prop_empty_right_id
     , quickCheckResult prop_empty_left_id
     , quickCheckResult prop_empty_top_id

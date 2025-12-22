@@ -1,19 +1,15 @@
 import Test.QuickCheck
 import Text.PrettyPrint.Boxes
 
-#if !MIN_VERSION_base(4,8,0)
-import Control.Applicative
-#endif
 import Control.Monad
-import System.Exit (exitFailure)
-
-#if MIN_VERSION_base(4,11,0)
-import Prelude hiding ((<>))
-#endif
 
 import Data.Char (isSpace)
-import Data.List.Compat (dropWhileEnd)
+import Data.List (dropWhileEnd)
+#if !MIN_VERSION_base(4,11,0)
 import Data.Semigroup ((<>))
+#endif
+
+import System.Exit (exitFailure)
 
 instance Arbitrary Alignment where
   arbitrary = elements [ top, bottom, center1, center2 ]
@@ -145,8 +141,8 @@ main = quickCheckOrError
     ]
 
 quickCheckOrError :: [IO Result] -> IO ()
-quickCheckOrError xs = sequence xs >>= \results ->
+quickCheckOrError xs = sequence xs >>= \results -> do
     let n = (length . filter (not . isSuccess)) results
-    in if n == 0 then return () else do
+    when (n > 0) $ do
             putStrLn $ "There are " ++ show n ++ " failing checks! Exiting with error."
             exitFailure

@@ -3,7 +3,7 @@
 -- Module      :  Text.PrettyPrint.Boxes
 -- Copyright   :  (c) Brent Yorgey 2009
 -- License     :  BSD-style (see LICENSE)
--- Maintainer  :  oleg.grenrus@iki.fi
+-- Maintainer  :  Andreas Abel
 -- Stability   :  experimental
 -- Portability :  portable
 --
@@ -89,14 +89,11 @@ import Prelude (words, unwords, IO, String, Bool, Char, Ord (..), (||), (&&), Eq
 import Data.Int (Int)
 import Control.Arrow ((***), first)
 import Data.Foldable (Foldable, toList, concatMap, foldr, foldl')
-import Data.List (null, map, zipWith, replicate, splitAt, repeat, reverse, take, length, intersperse, (++), filter)
+import Data.List (map, zipWith, replicate, splitAt, repeat, reverse, sum, take, length, intersperse, (++), filter, dropWhileEnd)
 import Data.Char (isSpace)
 import Data.String (IsString(..))
 import Data.Semigroup (Semigroup (..))
 import Data.Monoid (Monoid (..))
-
-sum :: [Int] -> Int
-sum = foldl' (+) 0
 
 -- | The basic data type.  A box has a specified size and some sort of
 --   contents.
@@ -377,9 +374,6 @@ render = unlines . map (dropWhileEnd isSpace) . renderBox
 -- | Like 'render' but preserves end-of-line whitespace.
 renderWithSpaces :: Box -> String
 renderWithSpaces = unlines . renderBox
-
-dropWhileEnd :: (a -> Bool) -> [a] -> [a]
-dropWhileEnd p = foldr (\x xs -> if p x && null xs then [] else x : xs) []
 
 -- XXX make QC properties for takeP
 

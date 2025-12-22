@@ -1,0 +1,38 @@
+Unreleased
+----------
+
+  * Change to use `<>` from `Semigroup`. Fixity is changed, but shouldn't affect things.
+    New fixities: `infixr 6 <>, <+>`; `infixr 4 //, /+/` (previously defaults `infixl 9`).
+  * `text` accounts for newlines. Use (new) combinator `line` for single lines.
+  * `render` strips end-of-line whitespace.
+  * Drop support for GHC 7.
+
+0.1.5: March 10, 2018
+---------------------
+
+  * Add support for GHC 8.4.1. Thanks, Andrés Sicard-Ramírez.
+  * Clean up `QuickCheck generators`, and prevent them from blowing up.
+    Thanks, Harry Garrood.
+  * Generalize functions for combining multiple boxes from lists to
+    `Foldable` containers.
+
+0.1.4: January 14, 2015
+-----------------------
+
+  * Require `Cabal >= 1.9.2`.
+  * Require `CPP`
+  * Only require `OverloadedStrings` for GHC.
+  * Fix imports to work with 7.10.1.
+  * Fix other imports to work with versions as far back as 7.0.1,
+    but only because it was easy this time.
+  * Add testing framework skeletons for Cabal and Travis-CI.
+
+0.1.2: August 23, 2011
+----------------------
+
+  * Export rows/cols.
+
+0.1.1: August 22, 2009
+----------------------
+
+  * Export `Box` and `Alignment` types
